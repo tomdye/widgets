@@ -1,37 +1,84 @@
 import { WidgetBase } from '@dojo/widget-core/WidgetBase';
-import { WidgetProperties } from '@dojo/widget-core/interfaces';
-import { StatefulMixin } from '@dojo/widget-core/mixins/Stateful';
+import { deepAssign } from '@dojo/core/lang';
+import uuid from '@dojo/core/uuid';
 import { ProjectorMixin } from '@dojo/widget-core/mixins/Projector';
+import { ThemeableMixin, ThemeableProperties } from '@dojo/widget-core/mixins/Themeable';
 import { v, w } from '@dojo/widget-core/d';
-import Icon, { icons } from '../../icon/Icon';
+import Icon, { icons, modifiers } from '../../icon/Icon';
+import * as materialIcons from './material/materialIcons.css';
 
-export class App extends StatefulMixin(WidgetBase)<WidgetProperties> {
+const materialTheme = {
+	'dojo-icon': materialIcons
+};
+
+export class App extends ThemeableMixin(WidgetBase)<ThemeableProperties> {
+	themeChange(event: Event) {
+		this.setProperties(deepAssign({}, this.properties, {
+			theme: (<HTMLInputElement> event.target).checked ? materialTheme : undefined
+		}));
+	}
+
 	render() {
+		const { theme = {} } = this.properties;
+
 		return v('div', [
-			v('h3', [ 'Save Icon' ]),
+			v('h1', [ 'Save Icon' ]),
 			w(Icon, {
-				icons: [ icons.iconSave ]
+				key: uuid(),
+				theme,
+				type: icons.iconSave
 			}, []),
-			v('h3', [ 'Large Save Icon' ]),
+			v('h1', [ 'Large Save Icon' ]),
 			w(Icon, {
-				icons: [ icons.iconSave, icons.icon2x ]
+				key: uuid(),
+				theme,
+				type: icons.iconSave,
+				modifiers: [ modifiers.icon2x ]
 			}, []),
-			v('h3', [ 'Spinning Icon' ]),
+			v('h1', [ 'Spinning Icon' ]),
 			w(Icon, {
-				icons: [ icons.iconAnchor, icons.iconSpin ]
+				key: uuid(),
+				theme,
+				type: icons.iconThumbsUp,
+				modifiers: [ modifiers.iconSpin ]
 			}, []),
-			v('h3', [ 'Outline Icon' ]),
+			v('h1', [ 'Success / Error Usage' ]),
 			w(Icon, {
-				icons: [ icons.iconAddressBookO ]
+				key: uuid(),
+				theme,
+				type: icons.iconCheckCircle,
+				modifiers: [ modifiers.iconSuccess ]
 			}, []),
-			v('h3', [ 'Icon Button' ]),
+			w(Icon, {
+				key: uuid(),
+				theme,
+				type: icons.iconExclamationCircle,
+				modifiers: [ modifiers.iconError ]
+			}, []),
+			v('h1', [ 'Icon Button' ]),
 			v('button', {}, [
 				'copy ',
-				w(Icon, { icons: [ icons.iconCopy ] }, [])
+				w(Icon, {
+					key: uuid(),
+					theme,
+					type: icons.iconCopy
+				}, [])
 			]),
 			v('button', {}, [
 				'paste ',
-				w(Icon, { icons: [ icons.iconPaste ] }, [])
+				w(Icon, {
+					key: uuid(),
+					theme,
+					type: icons.iconPaste
+				}, [])
+			]),
+			v('h1', [ 'Theme' ]),
+			v('label', [
+				'Material ',
+				v('input', {
+					type: 'checkbox',
+					onchange: this.themeChange
+				})
 			])
 		]);
 	}
