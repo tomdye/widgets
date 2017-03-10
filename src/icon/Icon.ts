@@ -4,22 +4,24 @@ import { v } from '@dojo/widget-core/d';
 
 import * as css from './styles/icon.css';
 
+export const icons = css;
+
 /**
  * @type IconProperties
  *
- * @property type		The type of icon
+ * @property icons The icon types / classes to use
  */
 export interface IconProperties extends ThemeableProperties {
-	type: string;
+	icons: (keyof typeof css)[];
 };
 
 @theme(css)
 export default class Icon extends ThemeableMixin(WidgetBase)<IconProperties> {
 	render() {
-		// const { type } = this.properties;
+		const { icons = [] } = this.properties;
 
 		return v('i', {
-			classes: this.classes(css.root).get()
+			classes: this.classes(css.icon, ...icons)
 		}, []);
 	}
 }
