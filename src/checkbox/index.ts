@@ -1,7 +1,7 @@
 import { WidgetBase } from '@dojo/widget-core/WidgetBase';
 import { DNode } from '@dojo/widget-core/interfaces';
 import { ThemedMixin, ThemedProperties, theme } from '@dojo/widget-core/mixins/Themed';
-import Focus from '@dojo/widget-core/meta/Focus';
+import Focus, { FocusResults } from '@dojo/widget-core/meta/Focus';
 import Label from '../label/index';
 import { CustomAriaProperties, LabeledProperties, InputProperties, CheckboxRadioEventProperties, KeyEventProperties, PointerEventProperties } from '../common/interfaces';
 import { formatAriaProperties } from '../common/util';
@@ -107,7 +107,7 @@ export class CheckboxBase<P extends CheckboxProperties = CheckboxProperties> ext
 
 	private _uuid = uuid();
 
-	protected getRootClasses(): (string | null)[] {
+	protected getRootClasses(focus: FocusResults): (string | null)[] {
 		const {
 			checked = false,
 			disabled,
@@ -115,7 +115,6 @@ export class CheckboxBase<P extends CheckboxProperties = CheckboxProperties> ext
 			readOnly,
 			required
 		} = this.properties;
-		const focus = this.meta(Focus).get('root');
 
 		return [
 			css.root,
@@ -181,6 +180,7 @@ export class CheckboxBase<P extends CheckboxProperties = CheckboxProperties> ext
 			readOnly,
 			required
 		} = this.properties;
+
 		const focus = this.meta(Focus).get('root');
 
 		const children = [
@@ -201,7 +201,7 @@ export class CheckboxBase<P extends CheckboxProperties = CheckboxProperties> ext
 
 		return v('div', {
 			key: 'root',
-			classes: this.theme(this.getRootClasses())
+			classes: this.theme(this.getRootClasses(focus))
 		}, labelAfter ? children : children.reverse());
 	}
 }
