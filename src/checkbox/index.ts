@@ -185,24 +185,18 @@ export class CheckboxBase<P extends CheckboxProperties = CheckboxProperties> ext
 
 		const children = [
 			v('div', { classes: this.theme(css.inputWrapper) }, this.renderInput()),
-			label
-				? w(
-						Label,
-						{
-							key: 'label',
-							theme,
-							disabled,
-							focused: focus.containsFocus,
-							invalid,
-							readOnly,
-							required,
-							hidden: labelHidden,
-							forId: id,
-							secondary: true
-						},
-						[label]
-					)
-				: null
+			label ? w(Label, {
+				key: 'label',
+				theme,
+				disabled,
+				focused: focus.containsFocus,
+				invalid,
+				readOnly,
+				required,
+				hidden: labelHidden,
+				forId: id,
+				secondary: true
+			}, [ label ]) : null
 		];
 
 		return v('div', {

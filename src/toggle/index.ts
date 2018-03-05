@@ -24,10 +24,11 @@ export interface ToggleProperties extends CheckboxProperties {
 	onLabel?: DNode;
 }
 
-const ToggleElementProperties =
-	(<(keyof ToggleProperties)[]> CheckboxElementProperties).concat(
-		['offLabel', 'onLabel']
-	);
+const ToggleElementProperties: (keyof ToggleProperties)[] = [
+	...CheckboxElementProperties,
+	'offLabel',
+	'onLabel'
+];
 
 @theme(css)
 @customElement<ToggleProperties>({
@@ -41,32 +42,20 @@ export default class ToggleBase extends CheckboxBase<ToggleProperties> {
 		const { checked, onLabel, offLabel } = this.properties;
 
 		return [
-			offLabel
-				? v(
-						'div',
-						{
-							key: 'offLabel',
-							classes: this.theme(css.offLabel),
-							'aria-hidden': checked ? 'true' : null
-						},
-						[offLabel]
-					)
-				: null,
+			offLabel ? v('div', {
+				key: 'offLabel',
+				classes: this.theme(css.offLabel),
+				'aria-hidden': checked ? 'true' : null
+			}, [ offLabel ]) : null,
 			v('div', {
 				key: 'toggle',
 				classes: this.theme(css.toggleSwitch)
 			}),
-			onLabel
-				? v(
-						'div',
-						{
-							key: 'onLabel',
-							classes: this.theme(css.onLabel),
-							'aria-hidden': checked ? null : 'true'
-						},
-						[onLabel]
-					)
-				: null,
+			onLabel ? v('div', {
+				key: 'onLabel',
+				classes: this.theme(css.onLabel),
+				'aria-hidden': checked ? null : 'true'
+			}, [ onLabel ]) : null,
 			...super.renderInput()
 		];
 	}
