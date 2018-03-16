@@ -16,7 +16,7 @@ import { customElement } from '@dojo/widget-core/decorators/customElement';
 /**
  * Enum for left / right alignment
  */
-export const enum Align {
+export enum Align {
 	bottom = 'bottom',
 	left = 'left',
 	right = 'right',
