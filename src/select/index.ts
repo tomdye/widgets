@@ -9,19 +9,15 @@ import { v, w } from '@dojo/framework/core/vdom';
 import { uuid } from '@dojo/framework/core/util';
 import { find } from '@dojo/framework/shim/array';
 import { formatAriaProperties, Keys } from '../common/util';
-import { CustomAriaProperties, InputProperties } from '../common/interfaces';
+import { CustomAriaProperties } from '../common/interfaces';
 import Icon from '../icon/index';
 import Label from '../label/index';
 import Listbox from '../listbox/index';
 import HelperText from '../helper-text/index';
 import * as css from '../theme/select.m.css';
 import { customElement } from '@dojo/framework/core/decorators/customElement';
-
-interface SelectInternalState {
-	previousValid?: boolean;
-	previousValue?: string;
-	previousRequired?: string;
-}
+import I18nMixin from '@dojo/framework/core/mixins/I18n';
+import commonBundle from '../common/nls/common';
 
 /**
  * @type SelectProperties
@@ -41,7 +37,6 @@ interface SelectInternalState {
  */
 export interface SelectProperties<T = any>
 	extends ThemedProperties,
-		InputProperties,
 		FocusProperties,
 		CustomAriaProperties {
 	getOptionDisabled?(option: T, index: number): boolean;
@@ -57,10 +52,17 @@ export interface SelectProperties<T = any>
 	onBlur?(key?: string | number): void;
 	onChange?(option: T, key?: string | number): void;
 	onFocus?(key?: string | number): void;
-	onValidate?: (valid: boolean | undefined) => void;
+	onValidate?: (valid: boolean | undefined, message: string) => void;
+	customValidator?: (value: string) => { valid?: boolean; message?: string } | void;
+	valid?: { valid?: boolean; message?: string } | boolean;
 	value?: string;
 	labelHidden?: boolean;
 	label?: string;
+	disabled?: boolean;
+	widgetId?: string;
+	name?: string;
+	readOnly?: boolean;
+	required?: boolean;
 }
 
 @theme(css)
@@ -82,14 +84,16 @@ export interface SelectProperties<T = any>
 		'getOptionValue',
 		'readOnly',
 		'required',
-		'invalid',
+		'valid',
 		'disabled',
 		'labelHidden'
 	],
 	attributes: ['widgetId', 'placeholder', 'label', 'value', 'helperText'],
 	events: ['onBlur', 'onChange', 'onFocus', 'onValidate']
 })
-export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectProperties<T>> {
+export class Select<T = any> extends I18nMixin(ThemedMixin(FocusMixin(WidgetBase)))<
+	SelectProperties<T>
+> {
 	private _focusedIndex!: number;
 	private _focusNode = 'trigger';
 	private _ignoreBlur = false;
@@ -97,7 +101,7 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 	private _baseId = uuid();
 	private _inputText = '';
 	private _resetInputTextTimer: any;
-	private _state: SelectInternalState = {};
+	private _dirty = false;
 
 	private _getOptionLabel(option: T) {
 		const { getOptionLabel } = this.properties;
@@ -168,37 +172,43 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 	}
 
 	private _validate() {
-		const {
-			_state: state,
-			properties: { onValidate, value, required }
-		} = this;
+		const { customValidator, onValidate, value = '', required } = this.properties;
+		const { messages } = this.localizeBundle(commonBundle);
 
-		if (!onValidate) {
+		if (value === '' && !this._dirty) {
+			onValidate && onValidate(undefined, '');
 			return;
 		}
 
-		if (
-			value === undefined ||
-			value === null ||
-			(state.previousRequired === required && state.previousValue === value)
-		) {
-			return;
-		}
+		let valid: boolean | undefined,
+			message = '';
 
-		state.previousValue = value;
-
-		let valid = true;
+		this._dirty = true;
 		if (required && !value) {
 			valid = false;
+			message = messages.required;
+		} else if (customValidator) {
+			const customValid = customValidator(value);
+			if (customValid) {
+				valid = customValid.valid;
+				message = customValid.message || '';
+			}
 		}
 
-		if (valid === state.previousValid) {
-			return;
+		onValidate && onValidate(valid, message);
+	}
+
+	protected get validity() {
+		const { valid = { valid: undefined, message: undefined } } = this.properties;
+
+		if (typeof valid === 'boolean') {
+			return { valid, message: undefined };
 		}
 
-		state.previousValid = valid;
-
-		onValidate(valid);
+		return {
+			valid: valid.valid,
+			message: valid.message
+		};
 	}
 
 	// custom select events
@@ -287,7 +297,6 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 			getOptionSelected,
 			getOptionValue,
 			widgetId = this._baseId,
-			invalid,
 			name,
 			options = [],
 			readOnly,
@@ -295,7 +304,7 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 			value
 		} = this.properties;
 
-		this._validate();
+		const { valid } = this.validity;
 
 		/* create option nodes */
 		const optionNodes = options.map((option, i) =>
@@ -319,7 +328,7 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 					classes: this.theme(css.input),
 					disabled,
 					focus: this.shouldFocus,
-					'aria-invalid': invalid ? 'true' : null,
+					'aria-invalid': valid === false ? 'true' : null,
 					id: widgetId,
 					name,
 					readOnly,
@@ -417,7 +426,6 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 			aria = {},
 			disabled,
 			getOptionSelected = this._getOptionSelected,
-			invalid,
 			options = [],
 			placeholder,
 			readOnly,
@@ -439,6 +447,8 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 			label = placeholder ? placeholder : this._getOptionLabel(options[0]);
 		}
 
+		const { valid } = this.validity;
+
 		return [
 			v(
 				'button',
@@ -447,7 +457,7 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 					'aria-controls': this._baseId,
 					'aria-expanded': `${this._open}`,
 					'aria-haspopup': 'listbox',
-					'aria-invalid': invalid ? 'true' : null,
+					'aria-invalid': valid === false ? 'true' : null,
 					'aria-required': required ? 'true' : null,
 					classes: this.theme([css.trigger, isPlaceholder ? css.placeholder : null]),
 					disabled: disabled || readOnly,
@@ -474,7 +484,6 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 			disabled,
 			helperText,
 			widgetId = this._baseId,
-			invalid,
 			readOnly,
 			required,
 			useNativeElement = false,
@@ -484,6 +493,11 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 
 		const focus = this.meta(Focus).get('root');
 
+		this._validate();
+		const { valid, message } = this.validity;
+
+		const computedHelperText = (valid === false && message) || helperText;
+
 		return v(
 			'div',
 			{
@@ -492,8 +506,8 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 					css.root,
 					disabled ? css.disabled : null,
 					focus.containsFocus ? css.focused : null,
-					invalid === true ? css.invalid : null,
-					invalid === false ? css.valid : null,
+					valid === false ? css.invalid : null,
+					valid === true ? css.valid : null,
 					readOnly ? css.readonly : null,
 					required ? css.required : null
 				])
@@ -507,7 +521,7 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 								classes,
 								disabled,
 								focused: focus.containsFocus,
-								invalid,
+								invalid: valid === false || undefined,
 								readOnly,
 								required,
 								hidden: labelHidden,
@@ -517,7 +531,7 @@ export class Select<T = any> extends ThemedMixin(FocusMixin(WidgetBase))<SelectP
 					  )
 					: null,
 				useNativeElement ? this.renderNativeSelect() : this.renderCustomSelect(),
-				w(HelperText, { theme, text: helperText, valid: !invalid })
+				w(HelperText, { text: computedHelperText, valid })
 			]
 		);
 	}

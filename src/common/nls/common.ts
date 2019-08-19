@@ -41,7 +41,8 @@ const messages = {
 	december: 'December',
 	clear: 'clear',
 	close: 'close',
-	open: 'open'
+	open: 'open',
+	required: 'A value is required'
 };
 
 export default { locales, messages };
