@@ -173,6 +173,8 @@ export class Select<T = any> extends I18nMixin(ThemedMixin(FocusMixin(WidgetBase
 
 	private _validate() {
 		const { customValidator, onValidate, value = '', required } = this.properties;
+		let { valid: previousValid } = this.properties;
+		let previousMessage: string | undefined = undefined;
 		const { messages } = this.localizeBundle(commonBundle);
 
 		if (value === '' && !this._dirty) {
@@ -195,7 +197,14 @@ export class Select<T = any> extends I18nMixin(ThemedMixin(FocusMixin(WidgetBase
 			}
 		}
 
-		onValidate && onValidate(valid, message);
+		if (typeof previousValid === 'object') {
+			previousMessage = previousValid.message;
+			previousValid = previousValid.valid;
+		}
+
+		if (valid !== previousValid || message !== previousMessage) {
+			onValidate && onValidate(valid, message);
+		}
 	}
 
 	protected get validity() {

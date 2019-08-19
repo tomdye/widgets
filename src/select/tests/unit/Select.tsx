@@ -75,7 +75,7 @@ const testProperties: Partial<SelectProperties> = {
 const testStateProperties: Partial<SelectProperties> = {
 	...testProperties,
 	disabled: true,
-	invalid: true,
+	valid: false,
 	readOnly: true,
 	required: true
 };
@@ -417,7 +417,7 @@ registerSuite('Select', {
 						onValidate={onValidate}
 						value={value}
 						required
-						invalid={invalid}
+						valid={!invalid}
 					/>
 				));
 				let assertion = baseNativeAssertion
@@ -482,7 +482,7 @@ registerSuite('Select', {
 						onValidate={onValidate}
 						value={value}
 						required={required}
-						invalid={invalid}
+						valid={!invalid}
 					/>
 				));
 				let assertion = baseNativeAssertion

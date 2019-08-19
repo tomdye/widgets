@@ -13,6 +13,9 @@ export default class App extends WidgetBase {
 	private _value2: string | undefined;
 	private _value3: string | undefined;
 
+	private _validatedValue: string | undefined;
+	private _validatedValid: undefined | { valid?: boolean; message?: string };
+
 	_selectOptions: SelectOption[] = [
 		{
 			value: 'cat',
@@ -134,6 +137,25 @@ export default class App extends WidgetBase {
 						this.invalidate();
 					}}
 					helperText="pick a value"
+				/>
+				<Select
+					key="validated"
+					{...this.getOptionSettings()}
+					getOptionSelected={(option) => !!this._value1 && option.value === this._value1}
+					label="Validated Select"
+					options={this._selectOptions}
+					useNativeElement={true}
+					value={this._validatedValue}
+					onChange={(option) => {
+						this._validatedValue = option.value;
+						this.invalidate();
+					}}
+					onValidate={(valid, message) => {
+						this._validatedValid = { valid, message };
+						this.invalidate();
+					}}
+					valid={this._validatedValid}
+					required
 				/>
 			</div>
 		);
