@@ -143,7 +143,7 @@ export default class App extends WidgetBase {
 					{...this.getOptionSettings()}
 					getOptionSelected={(option) => !!this._value1 && option.value === this._value1}
 					label="Validated Select"
-					options={this._selectOptions}
+					options={[{ value: '', label: '' }, ...this._selectOptions]}
 					useNativeElement={true}
 					value={this._validatedValue}
 					onChange={(option) => {
@@ -151,8 +151,20 @@ export default class App extends WidgetBase {
 						this.invalidate();
 					}}
 					onValidate={(valid, message) => {
+						console.log('validate called, valid: ', valid);
 						this._validatedValid = { valid, message };
 						this.invalidate();
+					}}
+					customValidator={(value) => {
+						console.log('customvalidate called, value: ', value);
+						if (value === 'dog') {
+							return {
+								valid: false,
+								message: 'Value cannot be dog'
+							};
+						} else {
+							return { valid: true };
+						}
 					}}
 					valid={this._validatedValid}
 					required

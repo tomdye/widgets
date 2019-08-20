@@ -171,14 +171,26 @@ export class Select<T = any> extends I18nMixin(ThemedMixin(FocusMixin(WidgetBase
 		option && onChange && onChange(option, key);
 	}
 
-	private _validate() {
-		const { customValidator, onValidate, value = '', required } = this.properties;
+	private _callOnValidate(valid: boolean | undefined, message: string) {
 		let { valid: previousValid } = this.properties;
 		let previousMessage: string | undefined = undefined;
+
+		if (typeof previousValid === 'object') {
+			previousMessage = previousValid.message;
+			previousValid = previousValid.valid;
+		}
+
+		if (valid !== previousValid || message !== previousMessage) {
+			this.properties.onValidate && this.properties.onValidate(valid, message);
+		}
+	}
+
+	private _validate() {
+		const { customValidator, value = '', required } = this.properties;
 		const { messages } = this.localizeBundle(commonBundle);
 
 		if (value === '' && !this._dirty) {
-			onValidate && onValidate(undefined, '');
+			this._callOnValidate(undefined, '');
 			return;
 		}
 
@@ -195,16 +207,11 @@ export class Select<T = any> extends I18nMixin(ThemedMixin(FocusMixin(WidgetBase
 				valid = customValid.valid;
 				message = customValid.message || '';
 			}
+		} else {
+			valid = true;
 		}
 
-		if (typeof previousValid === 'object') {
-			previousMessage = previousValid.message;
-			previousValid = previousValid.valid;
-		}
-
-		if (valid !== previousValid || message !== previousMessage) {
-			onValidate && onValidate(valid, message);
-		}
+		this._callOnValidate(valid, message);
 	}
 
 	protected get validity() {
@@ -497,12 +504,14 @@ export class Select<T = any> extends I18nMixin(ThemedMixin(FocusMixin(WidgetBase
 			required,
 			useNativeElement = false,
 			theme,
-			classes
+			classes,
+			onValidate
 		} = this.properties;
 
 		const focus = this.meta(Focus).get('root');
 
-		this._validate();
+		onValidate && this._validate();
+
 		const { valid, message } = this.validity;
 
 		const computedHelperText = (valid === false && message) || helperText;
