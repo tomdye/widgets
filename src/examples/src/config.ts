@@ -70,6 +70,7 @@ import ClickableClosableChip from './widgets/chip/ClickableClosable';
 import ClosableRendererChip from './widgets/chip/ClosableRenderer';
 import AdvancedOptions from './widgets/select/AdvancedOptions';
 import NonNative from './widgets/select/NonNative';
+import BasicMenu from './widgets/menu/Basic';
 
 export interface ExampleConfig {
 	title?: string;
@@ -351,6 +352,14 @@ export const config: Config = {
 			example: {
 				module: BasicListbox,
 				filename: 'Basic'
+			}
+		}
+	},
+	menu: {
+		overview: {
+			example: {
+				module: BasicMenu,
+				filename: 'BasicMenu'
 			}
 		}
 	},
