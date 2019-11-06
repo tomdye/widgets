@@ -1,13 +1,13 @@
-import { create, tsx, node, renderer } from '@dojo/framework/core/vdom';
+import { create, tsx, renderer } from '@dojo/framework/core/vdom';
 import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
 import { focus } from '@dojo/framework/core/middleware/focus';
 import { Keys } from '@dojo/widgets/common/util';
-
 import * as css from './Menu.m.css';
 import MenuItem from './MenuItem';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 import global from '@dojo/framework/shim/global';
 import { DNode } from '@dojo/framework/core/interfaces';
+import { DimensionResults } from '@dojo/framework/core/meta/Dimensions';
 
 export type MenuOption = { value: string; label?: string };
 
@@ -33,6 +33,7 @@ interface MenuICache {
 	numberInView: number;
 	menuHeight: number;
 	itemHeight: number;
+	itemToScroll: number;
 }
 
 const offscreenHeight = (dnode: DNode) => {
@@ -46,36 +47,15 @@ const offscreenHeight = (dnode: DNode) => {
 	return dimensions.height;
 };
 
-const getItemKey = (index: number) => `menuItem-${index}`;
-
-const middlewareFactory = create({ node, dimensions });
-
-const scrollIntoView = middlewareFactory(({ middleware: { node, dimensions } }) => {
-	return (index: number) => {
-		const { position: itemPosition, size: itemSize } = dimensions.get(getItemKey(index));
-		const { position: rootPosition, size: rootSize } = dimensions.get('root');
-		let domToScroll: Element | null = null;
-
-		if (itemPosition.bottom > rootPosition.bottom) {
-			const numInView = Math.ceil(rootSize.height / itemSize.height);
-			domToScroll = node.get(getItemKey(Math.max(index - numInView + 1, 0)));
-		} else if (itemPosition.top < rootPosition.top) {
-			domToScroll = node.get(getItemKey(index));
-		}
-
-		domToScroll && domToScroll.scrollIntoView();
-	};
-});
-
 const menuFactory = create({
 	icache: createICacheMiddleware<MenuICache>(),
 	focus,
-	scrollIntoView
+	dimensions
 }).properties<MenuProperties>();
 
 export const Menu = menuFactory(function({
 	properties,
-	middleware: { icache, focus, scrollIntoView }
+	middleware: { icache, focus, dimensions }
 }) {
 	const {
 		options,
@@ -108,10 +88,11 @@ export const Menu = menuFactory(function({
 					onSelect={() => {}}
 					active={false}
 					onRequestActive={() => {}}
+					onActive={() => {}}
+					scrollIntoView={false}
 				/>
 			)
 		);
-		console.log('height: ', itemHeight);
 		itemHeight && icache.set('menuHeight', numberInView * itemHeight);
 	}
 
@@ -163,7 +144,19 @@ export const Menu = menuFactory(function({
 		}
 	}
 
-	scrollIntoView(computedActiveIndex);
+	function _onActive(index: number, itemDimensions: DimensionResults) {
+		const { position: itemPosition, size: itemSize } = itemDimensions;
+		const { position: rootPosition, size: rootSize } = dimensions.get('root');
+
+		if (itemPosition.bottom > rootPosition.bottom) {
+			const numInView = Math.ceil(rootSize.height / itemSize.height);
+			icache.set('itemToScroll', Math.max(index - numInView + 1, 0));
+		} else if (itemPosition.top < rootPosition.top) {
+			icache.set('itemToScroll', index);
+		}
+	}
+
+	const itemToScroll = icache.get('itemToScroll');
 
 	return (
 		<div
@@ -179,21 +172,23 @@ export const Menu = menuFactory(function({
 			{options.map(({ value, label }, index) => {
 				const active = index === computedActiveIndex;
 				return (
-					<div key={getItemKey(index)}>
-						<MenuItem
-							label={label || value}
-							selected={value === selected}
-							onSelect={() => {
-								_setValue(value);
-							}}
-							active={active}
-							onRequestActive={() => {
-								if (focus.isFocused('root') || !focusable) {
-									_setActiveIndex(index);
-								}
-							}}
-						/>
-					</div>
+					<MenuItem
+						label={label || value}
+						selected={value === selected}
+						onSelect={() => {
+							_setValue(value);
+						}}
+						active={active}
+						onRequestActive={() => {
+							if (focus.isFocused('root') || !focusable) {
+								_setActiveIndex(index);
+							}
+						}}
+						onActive={(dimensions: DimensionResults) => {
+							_onActive(index, dimensions);
+						}}
+						scrollIntoView={index === itemToScroll}
+					/>
 				);
 			})}
 		</div>
