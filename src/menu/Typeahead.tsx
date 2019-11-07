@@ -1,7 +1,7 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
 import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
 import Textinput from '@dojo/widgets/text-input';
-import { Menu, MenuOption } from './Menu';
+import { Menu, MenuOption, MenuChildRenderer } from './Menu';
 import { Keys } from '@dojo/widgets/common/util';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 
@@ -11,6 +11,7 @@ interface TypeaheadProperties {
 	onValue(value: string): void;
 	initialValue?: string;
 	options: MenuOption[];
+	numberInView?: number;
 }
 
 interface TypeaheadICache {
@@ -24,14 +25,21 @@ interface TypeaheadICache {
 const factory = create({
 	icache: createICacheMiddleware<TypeaheadICache>(),
 	dimensions
-}).properties<TypeaheadProperties>();
+})
+	.properties<TypeaheadProperties>()
+	.children<MenuChildRenderer | undefined>();
 
 function filterOptions(options: MenuOption[], value: string) {
 	return options.filter((option) => option.value.toLowerCase().indexOf(value.toLowerCase()) > -1);
 }
 
-export const Typeahead = factory(function({ properties, middleware: { icache, dimensions } }) {
-	const { options, onValue, initialValue } = properties();
+export const Typeahead = factory(function({
+	properties,
+	children,
+	middleware: { icache, dimensions }
+}) {
+	const { options, onValue, initialValue, numberInView } = properties();
+	const [renderer] = children();
 
 	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
 		icache.set('initial', initialValue);
@@ -125,8 +133,9 @@ export const Typeahead = factory(function({ properties, middleware: { icache, di
 							}}
 							initialValue={icache.get('menuValue')}
 							focusable={false}
+							numberInView={numberInView}
 						>
-							{undefined}
+							{renderer}
 						</Menu>
 					</div>
 				</body>

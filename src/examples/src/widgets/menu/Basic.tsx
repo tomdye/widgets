@@ -18,7 +18,7 @@ const Example = factory(function Example({ middleware: { icache } }) {
 				}}
 				initialValue="California"
 			>
-				{undefined}
+				{}
 			</Menu>
 			<h2>{`Selected value is: ${icache.get('value')}`}</h2>
 
@@ -59,7 +59,9 @@ const Example = factory(function Example({ middleware: { icache } }) {
 				onValue={(value) => {
 					icache.set('typeahead-value', value);
 				}}
-			/>
+			>
+				{}
+			</Typeahead>
 			<h2>{`typeahead value is: ${icache.get('typeahead-value')}`}</h2>
 
 			<h1>Select</h1>
@@ -69,7 +71,9 @@ const Example = factory(function Example({ middleware: { icache } }) {
 					icache.set('select-value', value);
 				}}
 				initialValue="Nevada"
-			/>
+			>
+				{}
+			</Select>
 			<h2>{`select value is: ${icache.get('select-value')}`}</h2>
 		</virtual>
 	);
