@@ -1,8 +1,0 @@
-.emojiItem {
-	display: flex;
-	flex-direction: row;
-}
-
-.emojiGrow {
-	flex-grow: 1;
-}
