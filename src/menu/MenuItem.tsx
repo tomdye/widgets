@@ -7,7 +7,6 @@ import { RenderResult } from '@dojo/framework/core/interfaces';
 
 interface MenuItemProperties {
 	onSelect(): void;
-	label: RenderResult;
 	selected?: boolean;
 	active: boolean;
 	onRequestActive(): void;
@@ -15,18 +14,18 @@ interface MenuItemProperties {
 	scrollIntoView: boolean;
 }
 
-const factory = create({ dimensions }).properties<MenuItemProperties>();
+interface MenuItemChildren {
+	labelRenderer(): RenderResult;
+}
 
-export const MenuItem = factory(function({ properties, middleware: { dimensions } }) {
-	const {
-		onSelect,
-		label,
-		selected,
-		active,
-		onRequestActive,
-		onActive,
-		scrollIntoView
-	} = properties();
+const factory = create({ dimensions })
+	.properties<MenuItemProperties>()
+	.children<MenuItemChildren>();
+
+export const MenuItem = factory(function({ properties, children, middleware: { dimensions } }) {
+	const { onSelect, selected, active, onRequestActive, onActive, scrollIntoView } = properties();
+
+	const [{ labelRenderer }] = children();
 
 	if (active) {
 		onActive(dimensions.get('root'));
@@ -40,7 +39,7 @@ export const MenuItem = factory(function({ properties, middleware: { dimensions 
 			onpointerdown={onSelect}
 			scrollIntoView={scrollIntoView}
 		>
-			{label}
+			{labelRenderer()}
 		</div>
 	);
 });

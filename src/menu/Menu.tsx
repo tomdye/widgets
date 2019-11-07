@@ -13,11 +13,11 @@ export type MenuOption = { value: string; label?: string };
 
 interface MenuItemMiddleware {
 	selected: boolean;
-	setValue: (value: string) => void;
+	onSelect: () => void;
 	active: boolean;
-	requestActive: () => void;
-	onActive: (index: number, itemDimensions: DimensionResults) => void;
-	shouldScrollIntoView: boolean;
+	onRequestActive: () => void;
+	onActive: (dimensions: DimensionResults) => void;
+	scrollIntoView: boolean;
 }
 
 interface MenuProperties {
@@ -33,6 +33,9 @@ interface MenuProperties {
 	onFocus?(): void;
 	onBlur?(): void;
 	numberInView?: number;
+}
+
+interface MenuChildren {
 	renderer?(
 		middleware: (index: number) => MenuItemMiddleware,
 		options: MenuOption[]
@@ -64,10 +67,13 @@ const menuFactory = create({
 	icache: createICacheMiddleware<MenuICache>(),
 	focus,
 	dimensions
-}).properties<MenuProperties>();
+})
+	.properties<MenuProperties>()
+	.children<MenuChildren>();
 
 export const Menu = menuFactory(function({
 	properties,
+	children,
 	middleware: { icache, focus, dimensions }
 }) {
 	const {
@@ -81,9 +87,10 @@ export const Menu = menuFactory(function({
 		onKeyDown,
 		onBlur,
 		onFocus,
-		numberInView = 4,
-		renderer
+		numberInView = 4
 	} = properties();
+
+	const [{ renderer }] = children();
 
 	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
 		icache.set('initial', initialValue);
@@ -97,14 +104,15 @@ export const Menu = menuFactory(function({
 			'itemHeight',
 			offscreenHeight(
 				<MenuItem
-					label="Offscreen"
 					selected={false}
 					onSelect={() => {}}
 					active={false}
 					onRequestActive={() => {}}
 					onActive={() => {}}
 					scrollIntoView={false}
-				/>
+				>
+					{{ labelRenderer: () => 'offscreen' }}
+				</MenuItem>
 			)
 		);
 		itemHeight && icache.set('menuHeight', numberInView * itemHeight);
@@ -176,15 +184,19 @@ export const Menu = menuFactory(function({
 		const { value } = options[index];
 		return {
 			selected: value === selected,
-			setValue: _setValue,
+			onSelect: () => {
+				_setValue(value);
+			},
 			active: index === computedActiveIndex,
-			requestActive: () => {
+			onRequestActive: () => {
 				if (focus.isFocused('root') || !focusable) {
 					_setActiveIndex(index);
 				}
 			},
-			onActive: _onActive,
-			shouldScrollIntoView: index === itemToScroll
+			onActive: (dimensions: DimensionResults) => {
+				_onActive(index, dimensions);
+			},
+			scrollIntoView: index === itemToScroll
 		};
 	};
 
@@ -193,29 +205,10 @@ export const Menu = menuFactory(function({
 			return renderer(getItemDetails, options);
 		}
 		return options.map(({ value, label }, index) => {
-			const {
-				selected,
-				setValue,
-				active,
-				requestActive,
-				onActive,
-				shouldScrollIntoView
-			} = getItemDetails(index);
-
 			return (
-				<MenuItem
-					label={label || value}
-					selected={selected}
-					onSelect={() => {
-						setValue(value);
-					}}
-					active={active}
-					onRequestActive={requestActive}
-					onActive={(dimensions) => {
-						onActive(index, dimensions);
-					}}
-					scrollIntoView={shouldScrollIntoView}
-				/>
+				<MenuItem {...getItemDetails(index)}>
+					{{ labelRenderer: () => label || value }}
+				</MenuItem>
 			);
 		});
 	}

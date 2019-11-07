@@ -27,46 +27,33 @@ const Example = factory(function Example({ middleware: { icache } }) {
 					icache.set('custom', value);
 				}}
 				numberInView={10}
-				renderer={(menuItem, options) => {
-					return options.map(({ value, label }, index) => {
-						const {
-							selected,
-							setValue,
-							active,
-							requestActive,
-							onActive,
-							shouldScrollIntoView
-						} = menuItem(index);
-
-						return (
-							<div classes={css.emojiItem}>
-								<div classes={css.emojiGrow}>
-									<MenuItem
-										label={label || value}
-										selected={selected}
-										onSelect={() => {
-											setValue(value);
-										}}
-										active={active}
-										onRequestActive={requestActive}
-										onActive={(dimensions) => {
-											onActive(index, dimensions);
-										}}
-										scrollIntoView={shouldScrollIntoView}
-									/>
-								</div>
-								{selected ? (
-									<span>💩</span>
-								) : active ? (
-									<span>☢</span>
-								) : (
-									<span>👻</span>
-								)}
-							</div>
-						);
-					});
+			>
+				{{
+					renderer: (menuItem, options) => {
+						return options.map(({ value, label }, index) => {
+							const menuItemProps = menuItem(index);
+							return (
+								<MenuItem {...menuItemProps}>
+									{{
+										labelRenderer: () => (
+											<virtual>
+												<span>{label || value}</span>
+												{menuItemProps.selected ? (
+													<span>💩</span>
+												) : menuItemProps.active ? (
+													<span>☢</span>
+												) : (
+													<span>👻</span>
+												)}
+											</virtual>
+										)
+									}}
+								</MenuItem>
+							);
+						});
+					}
 				}}
-			/>
+			</Menu>
 
 			<Typeahead
 				options={states}
