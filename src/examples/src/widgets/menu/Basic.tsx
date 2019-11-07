@@ -17,6 +17,7 @@ const Example = factory(function Example({ middleware: { icache } }) {
 					icache.set('value', value);
 				}}
 				initialValue="California"
+				numberInView={0}
 			>
 				{}
 			</Menu>
@@ -28,7 +29,7 @@ const Example = factory(function Example({ middleware: { icache } }) {
 				onValue={(value) => {
 					icache.set('custom', value);
 				}}
-				numberInView={5}
+				numberInView={6}
 			>
 				{(getMenuItemProps, options) => {
 					return options.map(({ value, label }, index) => {
@@ -37,14 +38,16 @@ const Example = factory(function Example({ middleware: { icache } }) {
 							<MenuItem {...menuItemProps}>
 								{() => (
 									<virtual>
-										<span>{label || value}</span>
-										{menuItemProps.selected ? (
-											<span>💩</span>
-										) : menuItemProps.active ? (
-											<span>☢</span>
-										) : (
-											<span>👻</span>
-										)}
+										<div styles={{ height: '70px' }}>
+											{label || value}{' '}
+											{menuItemProps.selected ? (
+												<span>💩</span>
+											) : menuItemProps.active ? (
+												<span>☢</span>
+											) : (
+												<span>👻</span>
+											)}
+										</div>
 									</virtual>
 								)}
 							</MenuItem>

@@ -8,9 +8,13 @@ import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 import * as css from './Typeahead.m.css';
 
 interface TypeaheadProperties {
+	/** Callback called when user selects a value */
 	onValue(value: string): void;
+	/** The initial selected value */
 	initialValue?: string;
+	/** Options to display within the menu */
 	options: MenuOption[];
+	/** Property to determine how many items to render. Defaults to 6, setting to 0 will render all results */
 	numberInView?: number;
 }
 

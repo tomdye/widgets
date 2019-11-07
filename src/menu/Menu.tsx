@@ -6,23 +6,31 @@ import * as css from './Menu.m.css';
 import MenuItem, { MenuItemProperties } from './MenuItem';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 import global from '@dojo/framework/shim/global';
-import { DNode, RenderResult } from '@dojo/framework/core/interfaces';
+import { RenderResult } from '@dojo/framework/core/interfaces';
 import { DimensionResults } from '@dojo/framework/core/meta/Dimensions';
 
 export type MenuOption = { value: string; label?: string };
 
 interface MenuProperties {
+	/** Options to display within the menu */
 	options: MenuOption[];
+	/** The initial selected value */
 	initialValue?: string;
+	/** Callback called when user selects a value */
 	onValue(value: string): void;
+	/** Called to request that the menu be closed */
 	onRequestClose?(): void;
-	onKeyPress?(key: any): void;
+	/** Optional callback, when passed, the widget will no longer control it's own active index / keyboard navigation */
 	onActiveIndexChange?(index: number): void;
+	/** Optional proprty to set the activeIndex when it is being controlled externally */
 	activeIndex?: number;
+	/** Determines if the widget can be focused or not. If the active index is controlled from elsewhere you may wish to stop the menu being focused and receiving keyboard events */
 	focusable?: boolean;
-	onKeyDown?(key: number): void;
+	/** Callback called when menu root is focused */
 	onFocus?(): void;
+	/** Callback called when menu root is blurred */
 	onBlur?(): void;
+	/** Property to determine how many items to render. Defaults to 6, setting to 0 will render all results */
 	numberInView?: number;
 }
 
@@ -36,7 +44,7 @@ interface MenuICache {
 	itemToScroll: number;
 }
 
-const offscreenHeight = (dnode: DNode) => {
+const offscreenHeight = (dnode: RenderResult) => {
 	const r = renderer(() => dnode);
 	const div = global.document.createElement('div');
 	div.style.position = 'absolute';
@@ -73,10 +81,9 @@ export const Menu = menuFactory(function({
 		onActiveIndexChange,
 		activeIndex,
 		focusable = true,
-		onKeyDown,
 		onBlur,
 		onFocus,
-		numberInView = 4
+		numberInView = 6
 	} = properties();
 
 	const [renderer] = children();
@@ -89,22 +96,29 @@ export const Menu = menuFactory(function({
 
 	if (numberInView !== icache.get('numberInView')) {
 		icache.set('numberInView', numberInView);
-		const itemHeight = icache.getOrSet(
-			'itemHeight',
-			offscreenHeight(
-				<MenuItem
-					selected={false}
-					onSelect={() => {}}
-					active={false}
-					onRequestActive={() => {}}
-					onActive={() => {}}
-					scrollIntoView={false}
-				>
-					{() => 'offscreen'}
-				</MenuItem>
-			)
-		);
-		itemHeight && icache.set('menuHeight', numberInView * itemHeight);
+
+		if (numberInView !== 0) {
+			const offscreenItemProps = {
+				selected: false,
+				onSelect: () => {},
+				active: false,
+				onRequestActive: () => {},
+				onActive: () => {},
+				scrollIntoView: false
+			};
+
+			const itemHeight = icache.getOrSet(
+				'itemHeight',
+				offscreenHeight(
+					renderer ? (
+						renderer(() => offscreenItemProps, [{ value: 'offscreen' }])
+					) : (
+						<MenuItem {...offscreenItemProps}>{() => 'offscreen'}</MenuItem>
+					)
+				)
+			);
+			itemHeight && icache.set('menuHeight', numberInView * itemHeight);
+		}
 	}
 
 	const selected = icache.get('value');
@@ -150,8 +164,6 @@ export const Menu = menuFactory(function({
 				event.preventDefault();
 				onRequestClose && onRequestClose();
 				break;
-			default:
-				onKeyDown && onKeyDown(event.which);
 		}
 	}
 
@@ -198,6 +210,8 @@ export const Menu = menuFactory(function({
 		});
 	}
 
+	const rootStyles = numberInView === 0 ? {} : { maxHeight: `${icache.get('menuHeight')}px` };
+
 	return (
 		<div
 			key="root"
@@ -207,7 +221,7 @@ export const Menu = menuFactory(function({
 			focus={focus.shouldFocus}
 			onfocus={onFocus}
 			onblur={onBlur}
-			styles={{ maxHeight: `${icache.get('menuHeight')}px` }}
+			styles={rootStyles}
 		>
 			{renderItems()}
 		</div>
