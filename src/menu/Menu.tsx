@@ -6,7 +6,7 @@ import * as css from './Menu.m.css';
 import MenuItem from './MenuItem';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 import global from '@dojo/framework/shim/global';
-import { DNode } from '@dojo/framework/core/interfaces';
+import { DNode, RenderResult } from '@dojo/framework/core/interfaces';
 import { DimensionResults } from '@dojo/framework/core/meta/Dimensions';
 
 export type MenuOption = { value: string; label?: string };
@@ -24,6 +24,7 @@ interface MenuProperties {
 	onFocus?(): void;
 	onBlur?(): void;
 	numberInView?: number;
+	renderer?(middleware: any, options: MenuOption[]): RenderResult;
 }
 
 interface MenuICache {
@@ -68,7 +69,8 @@ export const Menu = menuFactory(function({
 		onKeyDown,
 		onBlur,
 		onFocus,
-		numberInView = 4
+		numberInView = 4,
+		renderer
 	} = properties();
 
 	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
@@ -158,6 +160,42 @@ export const Menu = menuFactory(function({
 
 	const itemToScroll = icache.get('itemToScroll');
 
+	function renderItems() {
+		if (renderer) {
+			return renderer(
+				{
+					selected(value: string) {
+						return value === selected;
+					},
+					onSelect(value: string) {
+						_setValue(value);
+					},
+					active(index: number);
+				},
+				options
+			);
+		}
+		return options.map(({ value, label }, index) => (
+			<MenuItem
+				label={label || value}
+				selected={value === selected}
+				onSelect={() => {
+					_setValue(value);
+				}}
+				active={index === computedActiveIndex}
+				onRequestActive={() => {
+					if (focus.isFocused('root') || !focusable) {
+						_setActiveIndex(index);
+					}
+				}}
+				onActive={(dimensions: DimensionResults) => {
+					_onActive(index, dimensions);
+				}}
+				scrollIntoView={index === itemToScroll}
+			/>
+		));
+	}
+
 	return (
 		<div
 			key="root"
@@ -169,28 +207,7 @@ export const Menu = menuFactory(function({
 			onblur={onBlur}
 			styles={{ maxHeight: `${icache.get('menuHeight')}px` }}
 		>
-			{options.map(({ value, label }, index) => {
-				const active = index === computedActiveIndex;
-				return (
-					<MenuItem
-						label={label || value}
-						selected={value === selected}
-						onSelect={() => {
-							_setValue(value);
-						}}
-						active={active}
-						onRequestActive={() => {
-							if (focus.isFocused('root') || !focusable) {
-								_setActiveIndex(index);
-							}
-						}}
-						onActive={(dimensions: DimensionResults) => {
-							_onActive(index, dimensions);
-						}}
-						scrollIntoView={index === itemToScroll}
-					/>
-				);
-			})}
+			{renderItems()}
 		</div>
 	);
 });
