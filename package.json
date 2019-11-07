@@ -49,7 +49,7 @@
     "@dojo/cli": "^6.0.0",
     "@dojo/cli-build-app": "^6.0.7",
     "@dojo/cli-build-widget": "^6.0.2",
-    "@dojo/framework": "7.0.0-alpha.1",
+    "@dojo/framework": "7.0.0-alpha.2",
     "@dojo/loader": "^2.0.0",
     "@dojo/scripts": "^4.0.2",
     "@dojo/themes": "^6.0.0",
