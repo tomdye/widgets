@@ -3,22 +3,13 @@ import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
 import { focus } from '@dojo/framework/core/middleware/focus';
 import { Keys } from '@dojo/widgets/common/util';
 import * as css from './Menu.m.css';
-import MenuItem from './MenuItem';
+import MenuItem, { MenuItemProperties } from './MenuItem';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 import global from '@dojo/framework/shim/global';
 import { DNode, RenderResult } from '@dojo/framework/core/interfaces';
 import { DimensionResults } from '@dojo/framework/core/meta/Dimensions';
 
 export type MenuOption = { value: string; label?: string };
-
-interface MenuItemMiddleware {
-	selected: boolean;
-	onSelect: () => void;
-	active: boolean;
-	onRequestActive: () => void;
-	onActive: (dimensions: DimensionResults) => void;
-	scrollIntoView: boolean;
-}
 
 interface MenuProperties {
 	options: MenuOption[];
@@ -33,13 +24,6 @@ interface MenuProperties {
 	onFocus?(): void;
 	onBlur?(): void;
 	numberInView?: number;
-}
-
-interface MenuChildren {
-	renderer?(
-		middleware: (index: number) => MenuItemMiddleware,
-		options: MenuOption[]
-	): RenderResult;
 }
 
 interface MenuICache {
@@ -63,13 +47,18 @@ const offscreenHeight = (dnode: DNode) => {
 	return dimensions.height;
 };
 
+export type MenuChildRenderer = (
+	getMenuItemProps: (index: number) => MenuItemProperties,
+	options: MenuOption[]
+) => RenderResult;
+
 const menuFactory = create({
 	icache: createICacheMiddleware<MenuICache>(),
 	focus,
 	dimensions
 })
 	.properties<MenuProperties>()
-	.children<MenuChildren>();
+	.children<MenuChildRenderer | undefined>();
 
 export const Menu = menuFactory(function({
 	properties,
@@ -90,7 +79,7 @@ export const Menu = menuFactory(function({
 		numberInView = 4
 	} = properties();
 
-	const [{ renderer }] = children();
+	const [renderer] = children();
 
 	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
 		icache.set('initial', initialValue);
@@ -111,7 +100,7 @@ export const Menu = menuFactory(function({
 					onActive={() => {}}
 					scrollIntoView={false}
 				>
-					{{ labelRenderer: () => 'offscreen' }}
+					{() => 'offscreen'}
 				</MenuItem>
 			)
 		);
@@ -180,7 +169,7 @@ export const Menu = menuFactory(function({
 
 	const itemToScroll = icache.get('itemToScroll');
 
-	const getItemDetails = (index: number) => {
+	const getMenuItemProps = (index: number) => {
 		const { value } = options[index];
 		return {
 			selected: value === selected,
@@ -202,14 +191,10 @@ export const Menu = menuFactory(function({
 
 	function renderItems() {
 		if (renderer) {
-			return renderer(getItemDetails, options);
+			return renderer(getMenuItemProps, options);
 		}
 		return options.map(({ value, label }, index) => {
-			return (
-				<MenuItem {...getItemDetails(index)}>
-					{{ labelRenderer: () => label || value }}
-				</MenuItem>
-			);
+			return <MenuItem {...getMenuItemProps(index)}>{() => label || value}</MenuItem>;
 		});
 	}
 

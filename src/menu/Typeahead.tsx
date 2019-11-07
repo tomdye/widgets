@@ -116,7 +116,9 @@ export const Typeahead = factory(function({ properties, middleware: { icache, di
 							}}
 							initialValue={icache.get('menuValue')}
 							focusable={false}
-						/>
+						>
+							{undefined}
+						</Menu>
 					</div>
 				</body>
 			)}

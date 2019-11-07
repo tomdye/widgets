@@ -56,7 +56,9 @@ export const Select = factory(function({ properties, middleware: { icache, focus
 								icache.set('open', false);
 							}}
 							initialValue={value}
-						/>
+						>
+							{undefined}
+						</Menu>
 					</div>
 				</body>
 			)}
