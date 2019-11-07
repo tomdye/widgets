@@ -3,10 +3,11 @@ import { create, tsx } from '@dojo/framework/core/vdom';
 import * as css from './MenuItem.m.css';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 import { DimensionResults } from '@dojo/framework/core/meta/Dimensions';
+import { RenderResult } from '@dojo/framework/core/interfaces';
 
 interface MenuItemProperties {
 	onSelect(): void;
-	label: string;
+	label: RenderResult;
 	selected?: boolean;
 	active: boolean;
 	onRequestActive(): void;

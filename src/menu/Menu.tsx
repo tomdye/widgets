@@ -11,6 +11,15 @@ import { DimensionResults } from '@dojo/framework/core/meta/Dimensions';
 
 export type MenuOption = { value: string; label?: string };
 
+interface MenuItemMiddleware {
+	selected: boolean;
+	setValue: (value: string) => void;
+	active: boolean;
+	requestActive: () => void;
+	onActive: (index: number, itemDimensions: DimensionResults) => void;
+	shouldScrollIntoView: boolean;
+}
+
 interface MenuProperties {
 	options: MenuOption[];
 	initialValue?: string;
@@ -24,7 +33,10 @@ interface MenuProperties {
 	onFocus?(): void;
 	onBlur?(): void;
 	numberInView?: number;
-	renderer?(middleware: any, options: MenuOption[]): RenderResult;
+	renderer?(
+		middleware: (index: number) => MenuItemMiddleware,
+		options: MenuOption[]
+	): RenderResult;
 }
 
 interface MenuICache {
@@ -160,40 +172,52 @@ export const Menu = menuFactory(function({
 
 	const itemToScroll = icache.get('itemToScroll');
 
+	const getItemDetails = (index: number) => {
+		const { value } = options[index];
+		return {
+			selected: value === selected,
+			setValue: _setValue,
+			active: index === computedActiveIndex,
+			requestActive: () => {
+				if (focus.isFocused('root') || !focusable) {
+					_setActiveIndex(index);
+				}
+			},
+			onActive: _onActive,
+			shouldScrollIntoView: index === itemToScroll
+		};
+	};
+
 	function renderItems() {
 		if (renderer) {
-			return renderer(
-				{
-					selected(value: string) {
-						return value === selected;
-					},
-					onSelect(value: string) {
-						_setValue(value);
-					},
-					active(index: number);
-				},
-				options
-			);
+			return renderer(getItemDetails, options);
 		}
-		return options.map(({ value, label }, index) => (
-			<MenuItem
-				label={label || value}
-				selected={value === selected}
-				onSelect={() => {
-					_setValue(value);
-				}}
-				active={index === computedActiveIndex}
-				onRequestActive={() => {
-					if (focus.isFocused('root') || !focusable) {
-						_setActiveIndex(index);
-					}
-				}}
-				onActive={(dimensions: DimensionResults) => {
-					_onActive(index, dimensions);
-				}}
-				scrollIntoView={index === itemToScroll}
-			/>
-		));
+		return options.map(({ value, label }, index) => {
+			const {
+				selected,
+				setValue,
+				active,
+				requestActive,
+				onActive,
+				shouldScrollIntoView
+			} = getItemDetails(index);
+
+			return (
+				<MenuItem
+					label={label || value}
+					selected={selected}
+					onSelect={() => {
+						setValue(value);
+					}}
+					active={active}
+					onRequestActive={requestActive}
+					onActive={(dimensions) => {
+						onActive(index, dimensions);
+					}}
+					scrollIntoView={shouldScrollIntoView}
+				/>
+			);
+		});
 	}
 
 	return (
