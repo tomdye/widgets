@@ -9,6 +9,7 @@ import * as css from './Typeahead.m.css';
 
 interface TypeaheadProperties {
 	onValue(value: string): void;
+	initialValue?: string;
 	options: MenuOption[];
 }
 
@@ -17,6 +18,7 @@ interface TypeaheadICache {
 	open: boolean;
 	activeIndex: number;
 	menuValue: string;
+	initial: string;
 }
 
 const factory = create({
@@ -29,7 +31,15 @@ function filterOptions(options: MenuOption[], value: string) {
 }
 
 export const Typeahead = factory(function({ properties, middleware: { icache, dimensions } }) {
-	const { options, onValue } = properties();
+	const { options, onValue, initialValue } = properties();
+
+	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
+		icache.set('initial', initialValue);
+		icache.set('textValue', initialValue);
+		icache.set('menuValue', initialValue);
+		icache.set('activeIndex', options.findIndex((option) => option.value === initialValue));
+	}
+
 	const open = icache.getOrSet('open', false);
 	const textValue = icache.getOrSet('textValue', '');
 	const activeIndex = icache.getOrSet('activeIndex', 0);
@@ -101,7 +111,6 @@ export const Typeahead = factory(function({ properties, middleware: { icache, di
 						<Menu
 							options={filteredOptions}
 							onValue={(value) => {
-								console.log('onValue, ', value);
 								icache.set('textValue', value);
 								icache.set('menuValue', value);
 								icache.set('open', false);

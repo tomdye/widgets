@@ -1,5 +1,5 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
-import { icache } from '@dojo/framework/core/middleware/icache';
+import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
 import { focus } from '@dojo/framework/core/middleware/focus';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 import { Menu, MenuOption } from './Menu';
@@ -8,14 +8,29 @@ import * as css from './Select.m.css';
 
 interface SelectProperties {
 	onValue(value: string): void;
-	value?: string;
+	initialValue?: string;
 	options: MenuOption[];
 }
+
+interface SelectICache {
+	open: boolean;
+	initial: string;
+	value: string;
+}
+
+const icache = createICacheMiddleware<SelectICache>();
 
 const factory = create({ icache, focus, dimensions }).properties<SelectProperties>();
 
 export const Select = factory(function({ properties, middleware: { icache, focus, dimensions } }) {
-	const { options, onValue, value } = properties();
+	const { options, onValue, initialValue } = properties();
+
+	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
+		icache.set('initial', initialValue);
+		icache.set('value', initialValue);
+	}
+
+	const value = icache.getOrSet('value', 'Select Something!');
 	const open = icache.get('open');
 	const { position, size } = dimensions.get('trigger');
 
@@ -47,6 +62,7 @@ export const Select = factory(function({ properties, middleware: { icache, focus
 							options={options}
 							onValue={(value) => {
 								icache.set('open', false);
+								icache.set('value', value);
 								onValue(value);
 							}}
 							onRequestClose={() => {
@@ -55,7 +71,8 @@ export const Select = factory(function({ properties, middleware: { icache, focus
 							onBlur={() => {
 								icache.set('open', false);
 							}}
-							initialValue={value}
+							initialValue={initialValue}
+							numberInView={10}
 						>
 							{undefined}
 						</Menu>

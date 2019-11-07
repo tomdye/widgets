@@ -68,6 +68,7 @@ const Example = factory(function Example({ middleware: { icache } }) {
 				onValue={(value) => {
 					icache.set('select-value', value);
 				}}
+				initialValue="Nevada"
 			/>
 			<h2>{`select value is: ${icache.get('select-value')}`}</h2>
 		</virtual>
