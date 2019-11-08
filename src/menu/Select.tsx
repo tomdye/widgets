@@ -2,10 +2,11 @@ import { create, tsx } from '@dojo/framework/core/vdom';
 import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
 import { focus } from '@dojo/framework/core/middleware/focus';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
-import { Menu, MenuOption, MenuChildRenderer } from './Menu';
+import { Menu, MenuOption, ItemRendererProperties } from './Menu';
 
 import * as css from './Select.m.css';
 import { Keys } from '../common/util';
+import { RenderResult } from '@dojo/framework/core/interfaces';
 
 interface SelectProperties {
 	/** Callback called when user selects a value */
@@ -14,8 +15,10 @@ interface SelectProperties {
 	initialValue?: string;
 	/** Options to display within the menu */
 	options: MenuOption[];
-	/** Property to determine how many items to render. Defaults to 6, setting to 0 will render all results */
+	/** Property to determine how many items to render. Defaults to 6 */
 	numberInView?: number;
+	/** Custom renderer for item contents */
+	itemRenderer?(properties: ItemRendererProperties): RenderResult;
 }
 
 interface SelectICache {
@@ -26,17 +29,14 @@ interface SelectICache {
 
 const icache = createICacheMiddleware<SelectICache>();
 
-const factory = create({ icache, focus, dimensions })
-	.properties<SelectProperties>()
-	.children<MenuChildRenderer | undefined>();
+const factory = create({ icache, focus, dimensions }).properties<SelectProperties>();
 
 export const Select = factory(function({
 	properties,
 	children,
 	middleware: { icache, focus, dimensions }
 }) {
-	const { options, onValue, initialValue, numberInView } = properties();
-	const [renderer] = children();
+	const { options, onValue, initialValue, numberInView = 6, itemRenderer } = properties();
 
 	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
 		icache.set('initial', initialValue);
@@ -90,9 +90,8 @@ export const Select = factory(function({
 							onBlur={closeMenu}
 							initialValue={initialValue}
 							numberInView={numberInView}
-						>
-							{renderer}
-						</Menu>
+							itemRenderer={itemRenderer}
+						/>
 					</div>
 				</body>
 			)}

@@ -1,11 +1,12 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
 import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
 import Textinput from '@dojo/widgets/text-input';
-import { Menu, MenuOption, MenuChildRenderer } from './Menu';
+import { Menu, MenuOption, ItemRendererProperties } from './Menu';
 import { Keys } from '@dojo/widgets/common/util';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 
 import * as css from './Typeahead.m.css';
+import { RenderResult } from '@dojo/framework/core/interfaces';
 
 interface TypeaheadProperties {
 	/** Callback called when user selects a value */
@@ -14,8 +15,10 @@ interface TypeaheadProperties {
 	initialValue?: string;
 	/** Options to display within the menu */
 	options: MenuOption[];
-	/** Property to determine how many items to render. Defaults to 6, setting to 0 will render all results */
+	/** Property to determine how many items to render. Defaults to 6 */
 	numberInView?: number;
+	/** Custom renderer for item contents */
+	itemRenderer?(properties: ItemRendererProperties): RenderResult;
 }
 
 interface TypeaheadICache {
@@ -29,9 +32,7 @@ interface TypeaheadICache {
 const factory = create({
 	icache: createICacheMiddleware<TypeaheadICache>(),
 	dimensions
-})
-	.properties<TypeaheadProperties>()
-	.children<MenuChildRenderer | undefined>();
+}).properties<TypeaheadProperties>();
 
 function filterOptions(options: MenuOption[], value: string) {
 	return options.filter((option) => option.value.toLowerCase().indexOf(value.toLowerCase()) > -1);
@@ -42,8 +43,7 @@ export const Typeahead = factory(function({
 	children,
 	middleware: { icache, dimensions }
 }) {
-	const { options, onValue, initialValue, numberInView } = properties();
-	const [renderer] = children();
+	const { options, onValue, initialValue, numberInView = 6, itemRenderer } = properties();
 
 	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
 		icache.set('initial', initialValue);
@@ -86,11 +86,13 @@ export const Typeahead = factory(function({
 				break;
 			case Keys.Enter:
 				preventDefault();
-				const selectedValue = filteredOptions[activeIndex];
-				icache.set('textValue', selectedValue.value);
-				icache.set('menuValue', selectedValue.value);
-				icache.set('open', false);
-				onValue(selectedValue.value);
+				const activeItem = filteredOptions[activeIndex];
+				if (!activeItem.disabled) {
+					icache.set('textValue', activeItem.value);
+					icache.set('menuValue', activeItem.value);
+					icache.set('open', false);
+					onValue(activeItem.value);
+				}
 				break;
 		}
 	}
@@ -138,9 +140,8 @@ export const Typeahead = factory(function({
 							initialValue={icache.get('menuValue')}
 							focusable={false}
 							numberInView={numberInView}
-						>
-							{renderer}
-						</Menu>
+							itemRenderer={itemRenderer}
+						/>
 					</div>
 				</body>
 			)}

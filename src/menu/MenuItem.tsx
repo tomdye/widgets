@@ -3,7 +3,6 @@ import { create, tsx } from '@dojo/framework/core/vdom';
 import * as css from './MenuItem.m.css';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 import { DimensionResults } from '@dojo/framework/core/meta/Dimensions';
-import { RenderResult } from '@dojo/framework/core/interfaces';
 
 export interface MenuItemProperties {
 	onSelect(): void;
@@ -15,9 +14,7 @@ export interface MenuItemProperties {
 	disabled?: boolean;
 }
 
-const factory = create({ dimensions })
-	.properties<MenuItemProperties>()
-	.children<() => RenderResult>();
+const factory = create({ dimensions }).properties<MenuItemProperties>();
 
 export const MenuItem = factory(function({ properties, children, middleware: { dimensions } }) {
 	const {
@@ -29,8 +26,6 @@ export const MenuItem = factory(function({ properties, children, middleware: { d
 		scrollIntoView,
 		disabled
 	} = properties();
-
-	const [labelRenderer] = children();
 
 	if (active) {
 		onActive(dimensions.get('root'));
@@ -53,7 +48,7 @@ export const MenuItem = factory(function({ properties, children, middleware: { d
 			}}
 			scrollIntoView={scrollIntoView}
 		>
-			{labelRenderer()}
+			{children()}
 		</div>
 	);
 });
