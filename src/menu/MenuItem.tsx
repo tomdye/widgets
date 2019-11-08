@@ -12,6 +12,7 @@ export interface MenuItemProperties {
 	onRequestActive(): void;
 	onActive(dimensions: DimensionResults): void;
 	scrollIntoView: boolean;
+	disabled?: boolean;
 }
 
 const factory = create({ dimensions })
@@ -19,7 +20,15 @@ const factory = create({ dimensions })
 	.children<() => RenderResult>();
 
 export const MenuItem = factory(function({ properties, children, middleware: { dimensions } }) {
-	const { onSelect, selected, active, onRequestActive, onActive, scrollIntoView } = properties();
+	const {
+		onSelect,
+		selected,
+		active,
+		onRequestActive,
+		onActive,
+		scrollIntoView,
+		disabled
+	} = properties();
 
 	const [labelRenderer] = children();
 
@@ -30,9 +39,18 @@ export const MenuItem = factory(function({ properties, children, middleware: { d
 	return (
 		<div
 			key="root"
-			onpointermove={onRequestActive}
-			classes={[css.root, selected ? css.selected : null, active ? css.active : null]}
-			onpointerdown={onSelect}
+			onpointermove={() => {
+				!disabled && onRequestActive();
+			}}
+			classes={[
+				css.root,
+				selected ? css.selected : null,
+				active ? css.active : null,
+				disabled ? css.disabled : null
+			]}
+			onpointerdown={() => {
+				!disabled && onSelect();
+			}}
 			scrollIntoView={scrollIntoView}
 		>
 			{labelRenderer()}

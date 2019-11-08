@@ -1,7 +1,7 @@
 const states = [
 	{ value: 'Alabama' },
 	{ value: 'Alaska' },
-	{ value: 'Arizona' },
+	{ value: 'Arizona', disabled: true },
 	{ value: 'Arkansas' },
 	{ value: 'California' },
 	{ value: 'Colorado' },

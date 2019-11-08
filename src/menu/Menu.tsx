@@ -9,7 +9,7 @@ import global from '@dojo/framework/shim/global';
 import { RenderResult } from '@dojo/framework/core/interfaces';
 import { DimensionResults } from '@dojo/framework/core/meta/Dimensions';
 
-export type MenuOption = { value: string; label?: string };
+export type MenuOption = { value: string; label?: string; disabled?: boolean };
 
 interface MenuProperties {
 	/** Options to display within the menu */
@@ -140,7 +140,6 @@ export const Menu = menuFactory(function({
 
 	function _onKeyDown(event: KeyboardEvent) {
 		let newIndex: number;
-
 		event.stopPropagation();
 
 		switch (event.which) {
@@ -148,7 +147,7 @@ export const Menu = menuFactory(function({
 			case Keys.Space:
 				event.preventDefault();
 				const activeItem = options[computedActiveIndex];
-				_setValue(activeItem.value);
+				!activeItem.disabled && _setValue(activeItem.value);
 				break;
 			case Keys.Down:
 				event.preventDefault();
@@ -182,7 +181,7 @@ export const Menu = menuFactory(function({
 	const itemToScroll = icache.get('itemToScroll');
 
 	const getMenuItemProps = (index: number) => {
-		const { value } = options[index];
+		const { value, disabled } = options[index];
 		return {
 			selected: value === selected,
 			onSelect: () => {
@@ -197,7 +196,8 @@ export const Menu = menuFactory(function({
 			onActive: (dimensions: DimensionResults) => {
 				_onActive(index, dimensions);
 			},
-			scrollIntoView: index === itemToScroll
+			scrollIntoView: index === itemToScroll,
+			disabled
 		};
 	};
 

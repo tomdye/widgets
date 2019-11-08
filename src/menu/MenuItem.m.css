@@ -13,3 +13,8 @@
 .active {
 	border: 1px solid red;
 }
+
+.disabled {
+	color: grey;
+	font-style: italic;
+}
