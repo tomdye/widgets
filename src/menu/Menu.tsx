@@ -184,6 +184,7 @@ export const Menu = menuFactory(function({
 
 	const itemToScroll = icache.get('itemToScroll');
 	const rootStyles = numberInView === 0 ? {} : { maxHeight: `${icache.get('menuHeight')}px` };
+	const shouldFocus = focus.shouldFocus();
 
 	return (
 		<div
@@ -191,7 +192,7 @@ export const Menu = menuFactory(function({
 			classes={css.root}
 			tabIndex={focusable ? 0 : -1}
 			onkeydown={_onKeyDown}
-			focus={focus.shouldFocus}
+			focus={() => shouldFocus}
 			onfocus={onFocus}
 			onblur={onBlur}
 			styles={rootStyles}
@@ -201,6 +202,7 @@ export const Menu = menuFactory(function({
 				const active = index === computedActiveIndex;
 				return (
 					<MenuItem
+						key={`item-${index}`}
 						selected={selected}
 						onSelect={() => {
 							_setValue(value);

@@ -7,6 +7,7 @@ import { Menu, MenuOption, ItemRendererProperties } from './Menu';
 import * as css from './Select.m.css';
 import { Keys } from '../common/util';
 import { RenderResult } from '@dojo/framework/core/interfaces';
+import Popup, { PopupPosition } from './Popup';
 
 interface SelectProperties {
 	/** Callback called when user selects a value */
@@ -19,6 +20,7 @@ interface SelectProperties {
 	numberInView?: number;
 	/** Custom renderer for item contents */
 	itemRenderer?(properties: ItemRendererProperties): RenderResult;
+	position?: PopupPosition;
 }
 
 interface SelectICache {
@@ -31,12 +33,15 @@ const icache = createICacheMiddleware<SelectICache>();
 
 const factory = create({ icache, focus, dimensions }).properties<SelectProperties>();
 
-export const Select = factory(function({
-	properties,
-	children,
-	middleware: { icache, focus, dimensions }
-}) {
-	const { options, onValue, initialValue, numberInView = 6, itemRenderer } = properties();
+export const Select = factory(function({ properties, middleware: { icache, focus, dimensions } }) {
+	const {
+		options,
+		onValue,
+		initialValue,
+		numberInView = 6,
+		itemRenderer,
+		position
+	} = properties();
 
 	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
 		icache.set('initial', initialValue);
@@ -45,7 +50,7 @@ export const Select = factory(function({
 
 	const value = icache.getOrSet('value', 'Select Something!');
 	const open = icache.get('open');
-	const { position, size } = dimensions.get('trigger');
+	const triggerDimensions = dimensions.get('trigger');
 
 	function _onKeyDown(event: KeyboardEvent) {
 		if (event.which === Keys.Down || event.which === Keys.Space || event.which === Keys.Enter) {
@@ -62,38 +67,30 @@ export const Select = factory(function({
 		icache.set('open', false);
 	}
 
+	const shouldFocus = focus.shouldFocus();
+
 	return (
 		<virtual>
 			<button key="trigger" classes={css.trigger} onclick={openMenu} onkeydown={_onKeyDown}>
 				{value || 'Select something!'}
 			</button>
 			{open && (
-				<body>
-					<div classes={css.underlay} />
-					<div
-						classes={css.menu}
-						styles={{
-							width: `${size.width}px`,
-							left: `${position.left}px`,
-							top: `${position.top + size.height}px`
+				<Popup onClose={closeMenu} anchorDimensions={triggerDimensions} position={position}>
+					<Menu
+						focus={() => shouldFocus}
+						options={options}
+						onValue={(value) => {
+							closeMenu();
+							value !== icache.get('value') && icache.set('value', value);
+							onValue(value);
 						}}
-					>
-						<Menu
-							focus={focus.shouldFocus}
-							options={options}
-							onValue={(value) => {
-								closeMenu();
-								icache.set('value', value);
-								onValue(value);
-							}}
-							onRequestClose={closeMenu}
-							onBlur={closeMenu}
-							initialValue={initialValue}
-							numberInView={numberInView}
-							itemRenderer={itemRenderer}
-						/>
-					</div>
-				</body>
+						onRequestClose={closeMenu}
+						onBlur={closeMenu}
+						initialValue={initialValue}
+						numberInView={numberInView}
+						itemRenderer={itemRenderer}
+					/>
+				</Popup>
 			)}
 		</virtual>
 	);

@@ -15,6 +15,7 @@
 }
 
 .underlay {
+	background: rgba(0,0,0,0.25);
 	z-index: 10;
 	position: fixed;
 	top: 0;

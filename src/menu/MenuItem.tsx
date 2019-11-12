@@ -3,6 +3,8 @@ import { create, tsx } from '@dojo/framework/core/vdom';
 import * as css from './MenuItem.m.css';
 import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 import { DimensionResults } from '@dojo/framework/core/meta/Dimensions';
+import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
+import { throttle } from '@dojo/framework/core/util';
 
 export interface MenuItemProperties {
 	onSelect(): void;
@@ -14,9 +16,19 @@ export interface MenuItemProperties {
 	disabled?: boolean;
 }
 
-const factory = create({ dimensions }).properties<MenuItemProperties>();
+interface MenuItemICache {
+	active: boolean;
+}
 
-export const MenuItem = factory(function({ properties, children, middleware: { dimensions } }) {
+const icache = createICacheMiddleware<MenuItemICache>();
+
+const factory = create({ dimensions, icache }).properties<MenuItemProperties>();
+
+export const MenuItem = factory(function({
+	properties,
+	children,
+	middleware: { dimensions, icache }
+}) {
 	const {
 		onSelect,
 		selected,
@@ -27,16 +39,17 @@ export const MenuItem = factory(function({ properties, children, middleware: { d
 		disabled
 	} = properties();
 
-	if (active) {
-		onActive(dimensions.get('root'));
+	if (icache.get('active') !== active) {
+		icache.set('active', active);
+		active && onActive(dimensions.get('root'));
 	}
 
 	return (
 		<div
 			key="root"
-			onpointermove={() => {
-				!disabled && onRequestActive();
-			}}
+			onpointermove={throttle(() => {
+				!disabled && !active && onRequestActive();
+			}, 500)}
 			classes={[
 				css.root,
 				selected ? css.selected : null,

@@ -1,21 +1,29 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
 import { icache } from '@dojo/framework/core/middleware/icache';
 import states from './states';
-import Menu from '@dojo/widgets/menu/Menu';
-import Typeahead from '@dojo/widgets/menu/Typeahead';
+// import Menu from '@dojo/widgets/menu/Menu';
+// import Typeahead from '@dojo/widgets/menu/Typeahead';
 import Select from '@dojo/widgets/menu/Select';
 
 const factory = create({ icache });
 const Example = factory(function Example({ middleware: { icache } }) {
 	return (
 		<virtual>
-			<h1>Menu</h1>
+			<Select
+				options={states}
+				onValue={(value) => {
+					icache.set('select-value', value);
+				}}
+				initialValue="Nevada"
+			/>
+			{/* <h1>Menu</h1>
 			<Menu
 				options={states}
 				onValue={(value) => {
 					icache.set('value', value);
 				}}
 				initialValue="California"
+				numberInView={6}
 			/>
 			<h2>{`Selected value is: ${icache.get('value')}`}</h2>
 
@@ -42,7 +50,8 @@ const Example = factory(function Example({ middleware: { icache } }) {
 			/>
 			<h2>{`typeahead value is: ${icache.get('typeahead-value')}`}</h2>
 
-			<h1>Select</h1>
+			<h1>Select</h1> */}
+			<div styles={{ height: '1000px', background: 'red' }} />
 			<Select
 				options={states}
 				onValue={(value) => {
@@ -50,7 +59,16 @@ const Example = factory(function Example({ middleware: { icache } }) {
 				}}
 				initialValue="Nevada"
 			/>
+			<Select
+				options={states}
+				onValue={(value) => {
+					icache.set('select-value', value);
+				}}
+				initialValue="Nevada"
+				position="above"
+			/>
 			<h2>{`select value is: ${icache.get('select-value')}`}</h2>
+			<div styles={{ height: '1000px', background: 'green' }} />
 		</virtual>
 	);
 });

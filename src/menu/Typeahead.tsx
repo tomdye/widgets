@@ -7,6 +7,7 @@ import { dimensions } from '@dojo/framework/core/middleware/dimensions';
 
 import * as css from './Typeahead.m.css';
 import { RenderResult } from '@dojo/framework/core/interfaces';
+import Popup from './Popup';
 
 interface TypeaheadProperties {
 	/** Callback called when user selects a value */
@@ -38,11 +39,7 @@ function filterOptions(options: MenuOption[], value: string) {
 	return options.filter((option) => option.value.toLowerCase().indexOf(value.toLowerCase()) > -1);
 }
 
-export const Typeahead = factory(function({
-	properties,
-	children,
-	middleware: { icache, dimensions }
-}) {
+export const Typeahead = factory(function({ properties, middleware: { icache, dimensions } }) {
 	const { options, onValue, initialValue, numberInView = 6, itemRenderer } = properties();
 
 	if (initialValue !== undefined && initialValue !== icache.get('initial')) {
@@ -56,7 +53,7 @@ export const Typeahead = factory(function({
 	const textValue = icache.getOrSet('textValue', '');
 	const activeIndex = icache.getOrSet('activeIndex', 0);
 	const filteredOptions = filterOptions(options, textValue);
-	const { position, size } = dimensions.get('root');
+	const triggerDimensions = dimensions.get('root');
 
 	function _onKeyDown(key: number, preventDefault: () => void) {
 		switch (key) {
@@ -97,6 +94,10 @@ export const Typeahead = factory(function({
 		}
 	}
 
+	function onClose() {
+		icache.set('open', false);
+	}
+
 	return (
 		<div classes={css.root} key="root">
 			<Textinput
@@ -106,44 +107,30 @@ export const Typeahead = factory(function({
 					icache.set('open', true);
 					icache.set('activeIndex', 0);
 				}}
-				onBlur={() => {
-					icache.set('open', false);
-				}}
+				onBlur={onClose}
 				onKeyDown={_onKeyDown}
 			/>
 			{open && (
-				<body>
-					<div classes={css.underlay} />
-					<div
-						classes={css.menu}
-						styles={{
-							width: `${size.width}px`,
-							left: `${position.left}px`,
-							top: `${position.top + size.height}px`
+				<Popup anchorDimensions={triggerDimensions} onClose={onClose}>
+					<Menu
+						options={filteredOptions}
+						onValue={(value) => {
+							icache.set('textValue', value);
+							icache.set('menuValue', value);
+							onClose();
+							onValue(value);
 						}}
-					>
-						<Menu
-							options={filteredOptions}
-							onValue={(value) => {
-								icache.set('textValue', value);
-								icache.set('menuValue', value);
-								icache.set('open', false);
-								onValue(value);
-							}}
-							onRequestClose={() => {
-								icache.set('open', false);
-							}}
-							activeIndex={activeIndex}
-							onActiveIndexChange={(newIndex) => {
-								icache.set('activeIndex', newIndex);
-							}}
-							initialValue={icache.get('menuValue')}
-							focusable={false}
-							numberInView={numberInView}
-							itemRenderer={itemRenderer}
-						/>
-					</div>
-				</body>
+						onRequestClose={onClose}
+						activeIndex={activeIndex}
+						onActiveIndexChange={(newIndex) => {
+							icache.set('activeIndex', newIndex);
+						}}
+						initialValue={icache.get('menuValue')}
+						focusable={false}
+						numberInView={numberInView}
+						itemRenderer={itemRenderer}
+					/>
+				</Popup>
 			)}
 		</div>
 	);
