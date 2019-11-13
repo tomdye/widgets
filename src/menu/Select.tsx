@@ -69,6 +69,8 @@ export const Select = factory(function({ properties, middleware: { icache, focus
 
 	const shouldFocus = focus.shouldFocus();
 
+	console.log('render');
+
 	return (
 		<virtual>
 			<button key="trigger" classes={css.trigger} onclick={openMenu} onkeydown={_onKeyDown}>
@@ -86,7 +88,7 @@ export const Select = factory(function({ properties, middleware: { icache, focus
 						}}
 						onRequestClose={closeMenu}
 						onBlur={closeMenu}
-						initialValue={initialValue}
+						initialValue={value}
 						numberInView={numberInView}
 						itemRenderer={itemRenderer}
 					/>

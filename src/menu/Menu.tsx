@@ -1,5 +1,6 @@
 import { create, tsx, renderer } from '@dojo/framework/core/vdom';
 import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
+import { cache } from '@dojo/framework/core/middleware/cache';
 import { focus } from '@dojo/framework/core/middleware/focus';
 import { Keys } from '@dojo/widgets/common/util';
 import * as css from './Menu.m.css';
@@ -68,12 +69,13 @@ const offscreenHeight = (dnode: RenderResult) => {
 const menuFactory = create({
 	icache: createICacheMiddleware<MenuICache>(),
 	focus,
-	dimensions
+	dimensions,
+	cache
 }).properties<MenuProperties>();
 
 export const Menu = menuFactory(function({
 	properties,
-	middleware: { icache, focus, dimensions }
+	middleware: { icache, cache, focus, dimensions }
 }) {
 	const {
 		options,
@@ -143,7 +145,6 @@ export const Menu = menuFactory(function({
 	}
 
 	function _onKeyDown(event: KeyboardEvent) {
-		let newIndex: number;
 		event.stopPropagation();
 
 		switch (event.which) {
@@ -155,30 +156,71 @@ export const Menu = menuFactory(function({
 				break;
 			case Keys.Down:
 				event.preventDefault();
-				newIndex = (computedActiveIndex + 1) % options.length;
-				_setActiveIndex(newIndex);
+				_setActiveIndex((computedActiveIndex + 1) % options.length);
 				break;
 			case Keys.Up:
 				event.preventDefault();
-				newIndex = (computedActiveIndex - 1 + options.length) % options.length;
-				_setActiveIndex(newIndex);
+				_setActiveIndex((computedActiveIndex - 1 + options.length) % options.length);
 				break;
 			case Keys.Escape:
 				event.preventDefault();
 				onRequestClose && onRequestClose();
 				break;
+			default:
+				const newIndex = getComputedIndexFromInput(event.key);
+				if (newIndex !== undefined) {
+					_setActiveIndex(newIndex);
+				}
 		}
+	}
+
+	function getComputedIndexFromInput(key: string) {
+		const existingTimer = cache.get<NodeJS.Timer>('resetInputTextTimer');
+		let inputText = cache.get<string>('inputText') || '';
+		existingTimer && clearTimeout(existingTimer);
+
+		cache.set(
+			'resetInputTextTimer',
+			setTimeout(() => {
+				cache.set('inputText', '');
+			}, 800)
+		);
+
+		inputText += `${key}`;
+		cache.set('inputText', inputText);
+
+		let index: number | undefined;
+		options.some(({ disabled, value, label }, i) => {
+			if (disabled) {
+				return false;
+			}
+			label = label || value;
+
+			if (label.toLowerCase().indexOf(inputText.toLowerCase()) === 0) {
+				index = i;
+				return true;
+			}
+			return false;
+		});
+
+		return index;
 	}
 
 	function _onActive(index: number, itemDimensions: DimensionResults) {
 		const { position: itemPosition, size: itemSize } = itemDimensions;
 		const { position: rootPosition, size: rootSize } = dimensions.get('root');
-
+		console.log(
+			`itemPositionBottom: ${itemPosition.bottom}, rootPositionBottom: ${
+				rootPosition.bottom
+			}, itemPositionTop: ${itemPosition.top}, rootPositionTop: ${rootPosition.top}`
+		);
 		if (itemPosition.bottom > rootPosition.bottom) {
 			const numInView = Math.ceil(rootSize.height / itemSize.height);
 			icache.set('itemToScroll', Math.max(index - numInView + 1, 0));
+			console.log('scrolling to: ', Math.max(index - numInView + 1, 0));
 		} else if (itemPosition.top < rootPosition.top) {
 			icache.set('itemToScroll', index);
+			console.log('scrollint to: ', index);
 		}
 	}
 
