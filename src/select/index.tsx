@@ -2,7 +2,6 @@ import { RenderResult } from '@dojo/framework/core/interfaces';
 import { focus } from '@dojo/framework/core/middleware/focus';
 import { i18n } from '@dojo/framework/core/middleware/i18n';
 import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
-import { uuid } from '@dojo/framework/core/util';
 import { create, tsx } from '@dojo/framework/core/vdom';
 import { Keys } from '../common/util';
 import HelperText from '../helper-text';
@@ -47,8 +46,6 @@ interface SelectICache {
 	expanded: boolean;
 	focusNode: string;
 	initial: string;
-	menuId: string;
-	triggerId: string;
 	valid: boolean;
 	value: string;
 }
@@ -59,6 +56,7 @@ const factory = create({ icache, focus, theme, i18n }).properties<SelectProperti
 
 export const Select = factory(function Select({
 	properties,
+	id,
 	middleware: { icache, focus, theme, i18n }
 }) {
 	const {
@@ -84,8 +82,8 @@ export const Select = factory(function Select({
 	}
 
 	const value = icache.get('value');
-	const menuId = icache.getOrSet('menuId', uuid());
-	const triggerId = icache.getOrSet('triggerId', uuid());
+	const menuId = `select-${id}-menu`;
+	const triggerId = `select-${id}-trigger`;
 	const focusNode = icache.getOrSet('focusNode', 'trigger');
 	const shouldFocus = focus.shouldFocus();
 	const themedCss = theme.classes(css);
@@ -196,8 +194,10 @@ export const Select = factory(function Select({
 									onValue={(value: string) => {
 										focus.focus();
 										closeMenu();
-										value !== icache.get('value') && icache.set('value', value);
-										onValue(value);
+										if (value !== icache.get('value')) {
+											icache.set('value', value);
+											onValue(value);
+										}
 									}}
 									onRequestClose={closeMenu}
 									onBlur={closeMenu}
