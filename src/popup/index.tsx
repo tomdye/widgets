@@ -26,7 +26,7 @@ interface PopupICache {
 }
 
 export interface PopupChildren {
-	trigger: (toggleOpen: () => void) => RenderResult;
+	trigger: (toggleOpen: () => void, open: () => void, close: () => void) => RenderResult;
 	content: (close: () => void) => RenderResult;
 }
 
@@ -90,16 +90,20 @@ export const Popup = factory(function({
 
 	const classes = theme.classes(css);
 	const { trigger, content } = children()[0];
-	const open = icache.getOrSet('open', false);
+	const isOpen = icache.getOrSet('open', false);
 
 	function toggleOpen() {
-		const open = icache.get('open');
-		icache.set('open', !open);
-		if (open) {
-			onClose && onClose();
+		const isOpen = icache.get('open');
+		if (isOpen) {
+			close();
 		} else {
-			onOpen && onOpen();
+			open();
 		}
+	}
+
+	function open() {
+		icache.set('open', true);
+		onOpen && onOpen();
 	}
 
 	function close() {
@@ -110,9 +114,9 @@ export const Popup = factory(function({
 	return (
 		<virtual>
 			<span key="trigger" classes={fixedCss.trigger}>
-				{trigger(toggleOpen)}
+				{trigger(toggleOpen, open, close)}
 			</span>
-			{open && (
+			{isOpen && (
 				<body>
 					<div
 						key="underlay"

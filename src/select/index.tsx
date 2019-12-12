@@ -191,12 +191,12 @@ export const Select = factory(function Select({
 									key="menu"
 									focus={() => focusNode === 'menu' && shouldFocus}
 									options={options}
-									onValue={(value: string) => {
+									onValue={(newValue: string) => {
 										focus.focus();
 										closeMenu();
-										if (value !== icache.get('value')) {
-											icache.set('value', value);
-											onValue(value);
+										if (newValue !== value) {
+											icache.set('value', newValue);
+											onValue(newValue);
 										}
 									}}
 									onRequestClose={closeMenu}

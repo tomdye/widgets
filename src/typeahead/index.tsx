@@ -3,13 +3,16 @@ import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
 import Textinput from '@dojo/widgets/text-input';
 import { Menu, MenuOption, ItemRendererProperties } from '../menu';
 import { Keys } from '@dojo/widgets/common/util';
-import { dimensions } from '@dojo/framework/core/middleware/dimensions';
-
 import * as css from '../theme/default/typeahead.m.css';
+import * as textInputCss from '../theme/default/text-input.m.css';
 import { RenderResult } from '@dojo/framework/core/interfaces';
 import { Popup, PopupPosition } from '../popup';
-import theme from '@dojo/framework/core/middleware/theme';
+import theme from '../middleware/theme';
 import Label from '../label';
+import { i18n } from '@dojo/framework/core/middleware/i18n';
+import bundle from './typeahead.nls';
+import { focus } from '@dojo/framework/core/middleware/focus';
+import HelperText from '../helper-text';
 
 interface TypeaheadProperties {
 	/** Callback called when user selects a value */
@@ -42,7 +45,6 @@ interface TypeaheadICache {
 	textValue: string;
 	dirty: boolean;
 	expanded: boolean;
-	focusNode: string;
 	initial: string;
 	valid: boolean;
 	value: string;
@@ -52,8 +54,9 @@ interface TypeaheadICache {
 
 const factory = create({
 	icache: createICacheMiddleware<TypeaheadICache>(),
-	dimensions,
-	theme
+	i18n,
+	theme,
+	focus
 }).properties<TypeaheadProperties>();
 
 function filterOptions(options: MenuOption[], value: string) {
@@ -62,7 +65,8 @@ function filterOptions(options: MenuOption[], value: string) {
 
 export const Typeahead = factory(function({
 	properties,
-	middleware: { icache, dimensions, theme }
+	id,
+	middleware: { icache, theme, i18n, focus }
 }) {
 	const {
 		classes,
@@ -72,7 +76,7 @@ export const Typeahead = factory(function({
 		itemRenderer,
 		itemsInView = 6,
 		label,
-		onValidate,
+		// onValidate,
 		onValue,
 		options,
 		placeholder = '',
@@ -91,66 +95,18 @@ export const Typeahead = factory(function({
 	const textValue = icache.getOrSet('textValue', '');
 	const activeIndex = icache.getOrSet('activeIndex', 0);
 	const filteredOptions = filterOptions(options, textValue);
-	const triggerDimensions = dimensions.get('root');
 	const expanded = icache.getOrSet('expanded', false);
-
-	// function
-
-	function _onKeyDown(key: number, preventDefault: () => void) {
-		switch (key) {
-			case Keys.Escape:
-				if (expanded) {
-					// tooggleOpen();
-				}
-				icache.set('open', false);
-				break;
-			case Keys.Down:
-				preventDefault();
-				if (!open) {
-					icache.set('activeIndex', 0);
-				} else {
-					icache.set('activeIndex', (activeIndex + 1) % filteredOptions.length);
-				}
-				break;
-			case Keys.Up:
-				preventDefault();
-				if (!open) {
-					icache.set('activeIndex', 0);
-				} else {
-					icache.set(
-						'activeIndex',
-						(activeIndex - 1 + filteredOptions.length) % filteredOptions.length
-					);
-				}
-				break;
-			case Keys.Enter:
-				preventDefault();
-				const activeItem = filteredOptions[activeIndex];
-				if (!activeItem.disabled) {
-					icache.set('textValue', activeItem.value);
-					icache.set('value', activeItem.value);
-					onValue(activeItem.value);
-				}
-				break;
-		}
-	}
-
-	function onClose() {
-		icache.set('open', false);
-	}
-
+	const value = icache.get('value');
+	const menuId = `typeahead-${id}-menu`;
+	const triggerId = `typeahead-${id}-trigger`;
+	const shouldFocus = focus.shouldFocus();
+	let valid = icache.get('valid');
+	const dirty = icache.get('dirty');
+	const { messages } = i18n.localize(bundle);
 	const themedCss = theme.classes(css);
 
 	return (
-		<div
-			classes={[
-				themedCss.root,
-				disabled && themedCss.disabled,
-				valid === true && themedCss.valid,
-				valid === false && themedCss.invalid
-			]}
-			key="root"
-		>
+		<div classes={themedCss.root} key="root">
 			{label && (
 				<Label
 					theme={themeProp}
@@ -177,54 +133,117 @@ export const Typeahead = factory(function({
 				position={position}
 			>
 				{{
-					trigger: (toggleOpen) => {
+					trigger: (toggle, open, close) => {
+						function openMenu() {
+							if (!disabled && !expanded) {
+								focus.focus();
+								open();
+							}
+						}
+
+						function closeMenu() {
+							if (expanded) {
+								close();
+							}
+						}
+
+						function onKeyDown(key: number, preventDefault: () => void) {
+							switch (key) {
+								case Keys.Escape:
+									closeMenu();
+									break;
+								case Keys.Down:
+									preventDefault();
+									if (expanded) {
+										icache.set(
+											'activeIndex',
+											(activeIndex + 1) % filteredOptions.length
+										);
+									} else {
+										openMenu();
+										icache.set('activeIndex', 0);
+									}
+									break;
+								case Keys.Up:
+									preventDefault();
+									if (expanded) {
+										icache.set(
+											'activeIndex',
+											(activeIndex - 1 + filteredOptions.length) %
+												filteredOptions.length
+										);
+									} else {
+										openMenu();
+										icache.set('activeIndex', 0);
+									}
+									break;
+								case Keys.Enter:
+									preventDefault();
+									const activeItem = filteredOptions[activeIndex];
+									if (!activeItem.disabled) {
+										icache.set('textValue', activeItem.value);
+										icache.set('value', activeItem.value);
+										closeMenu();
+										onValue(activeItem.value);
+									}
+									break;
+							}
+						}
+
 						return (
 							<Textinput
 								value={textValue}
 								onValue={(value: string) => {
 									icache.set('textValue', value);
-
-									icache.set('open', true);
+									openMenu();
 									icache.set('activeIndex', 0);
 								}}
-								onBlur={onClose}
-								onKeyDown={_onKeyDown}
+								onKeyDown={onKeyDown}
+								placeholder={placeholder}
+								widgetId={triggerId}
+								theme={theme.compose(
+									textInputCss,
+									css,
+									'input'
+								)}
+								focus={() => shouldFocus}
 							/>
 						);
 					},
 					content: (close) => {
-						function closeMenu() {
-							icache.set('focusNode', 'trigger');
-							close();
-						}
-
 						return (
 							<div key="menu-wrapper" classes={themedCss.menuWrapper}>
 								<Menu
 									options={filteredOptions}
-									onValue={(value) => {
-										if (value !== icache.get('value')) {
-											icache.set('textValue', value);
-											icache.set('value', value);
-											onValue(value);
+									onValue={(newValue) => {
+										if (newValue !== value) {
+											icache.set('textValue', newValue);
+											icache.set('value', newValue);
+											onValue(newValue);
 										}
-										closeMenu();
+										close();
 									}}
-									onRequestClose={closeMenu}
+									onRequestClose={close}
 									activeIndex={activeIndex}
 									onActiveIndexChange={(newIndex) => {
 										icache.set('activeIndex', newIndex);
 									}}
-									initialValue={icache.get('value')}
+									initialValue={value}
 									focusable={false}
 									itemsInView={itemsInView}
 									itemRenderer={itemRenderer}
+									widgetId={menuId}
 								/>
 							</div>
 						);
 					}
 				}}
 			</Popup>
+			<HelperText
+				key="helperText"
+				text={valid === false ? messages.requiredMessage : helperText}
+				valid={valid}
+			/>
 		</div>
 	);
 });

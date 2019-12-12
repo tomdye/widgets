@@ -1,4 +1,26 @@
+@import './variables.css';
+
+/* The root style for Typeahead */
 .root {
-	position: relative;
-	width: 300px;
+	display: flex;
+	flex-direction: column;
 }
+
+/* Wrapper around the popup content */
+.menuWrapper {
+	border: 1px solid var(--component-color);
+}
+
+/* Modifier classes */
+/* .disabled {}
+.readonly {} */
+
+/* Valid class */
+/* .valid {
+	border-color: green;
+} */
+
+/* Invalid class */
+/* .invalid {
+	border-color: red;
+} */
