@@ -2,7 +2,7 @@ import { WidgetBase } from '@dojo/framework/core/WidgetBase';
 import { DNode } from '@dojo/framework/core/interfaces';
 import { ThemedMixin, ThemedProperties, theme } from '@dojo/framework/core/mixins/Themed';
 import { FocusMixin, FocusProperties } from '@dojo/framework/core/mixins/Focus';
-import { v, w } from '@dojo/framework/core/vdom';
+import { tsx } from '@dojo/framework/core/vdom';
 import Focus from '../meta/Focus';
 import Label from '../label/index';
 import { formatAriaProperties } from '../common/util';
@@ -192,77 +192,89 @@ export class TextArea extends ThemedMixin(FocusMixin(WidgetBase))<TextAreaProper
 
 		const computedHelperText = (valid === false && message) || helperText;
 
-		return v(
-			'div',
-			{
-				key: 'root',
-				classes: this.theme(this.getRootClasses())
-			},
-			[
-				label
-					? w(
-							Label,
-							{
-								theme,
-								classes,
-								disabled,
-								focused: focus.containsFocus,
-								valid,
-								readOnly,
-								required,
-								hidden: labelHidden,
-								forId: widgetId
-							},
-							[label]
-					  )
-					: null,
-				v('div', { classes: this.theme(css.inputWrapper) }, [
-					v('textarea', {
-						id: widgetId,
-						key: 'input',
-						...formatAriaProperties(aria),
-						classes: this.theme(css.input),
-						cols: `${columns}`,
-						disabled,
-						focus: this.shouldFocus,
-						'aria-invalid': valid === false ? 'true' : null,
-						maxlength: maxLength ? `${maxLength}` : null,
-						minlength: minLength ? `${minLength}` : null,
-						name,
-						placeholder,
-						readOnly,
-						'aria-readonly': readOnly ? 'true' : null,
-						required,
-						rows: `${rows}`,
-						value,
-						wrap: wrapText,
-						onblur: () => {
-							onBlur && onBlur();
-						},
-						onfocus: () => {
-							onFocus && onFocus();
-						},
-						oninput: this._onInput,
-						onkeydown: this._onKeyDown,
-						onkeyup: this._onKeyUp,
-						onclick: () => {
-							onClick && onClick();
-						},
-						onpointerenter: () => {
-							onOver && onOver();
-						},
-						onpointerleave: () => {
-							onOut && onOut();
-						}
-					})
-				]),
-				w(HelperText, {
-					text: computedHelperText,
-					valid,
-					classes,
-					theme
-				})
-			]
+		return (
+			<div key="root" classes={this.theme(this.getRootClasses())}>
+				<div
+					key="wraper"
+					classes={this.theme([
+						css.wrapper,
+						disabled ? css.disabled : null,
+						focus.containsFocus ? css.focused : null,
+						valid === false ? css.invalid : null,
+						valid === true ? css.valid : null,
+						readOnly ? css.readonly : null,
+						required ? css.required : null
+					])}
+				>
+					{label ? (
+						<Label
+							theme={theme}
+							classes={
+								classes || {
+									'@dojo/widgets/label': {
+										root: [this.theme(css.label)]
+									}
+								}
+							}
+							disabled={disabled}
+							focused={focus.containsFocus}
+							valid={valid}
+							readOnly={readOnly}
+							required={required}
+							hidden={labelHidden}
+							forId={widgetId}
+						>
+							{label}
+						</Label>
+					) : null}
+					<div classes={this.theme(css.inputWrapper)}>
+						<textarea
+							id={widgetId}
+							key="input"
+							{...formatAriaProperties(aria)}
+							classes={this.theme(css.input)}
+							cols={`${columns}`}
+							disabled={disabled}
+							focus={this.shouldFocus}
+							aria-invalid={valid === false ? 'true' : null}
+							maxlength={maxLength ? `${maxLength}` : null}
+							minlength={minLength ? `${minLength}` : null}
+							name={name}
+							placeholder={placeholder}
+							readOnly={readOnly}
+							aria-readonly={readOnly ? 'true' : null}
+							required={required}
+							rows={`${rows}`}
+							value={value}
+							wrap={wrapText}
+							onblur={() => {
+								onBlur && onBlur();
+							}}
+							onfocus={() => {
+								onFocus && onFocus();
+							}}
+							oninput={this._onInput}
+							onkeydown={this._onKeyDown}
+							onkeyup={this._onKeyUp}
+							onclick={() => {
+								onClick && onClick();
+							}}
+							onpointerenter={() => {
+								onOver && onOver();
+							}}
+							onpointerleave={() => {
+								onOut && onOut();
+							}}
+						/>
+					</div>
+				</div>
+				<HelperText
+					text={computedHelperText}
+					valid={valid}
+					classes={classes}
+					theme={theme}
+				/>
+			</div>
 		);
 	}
 }

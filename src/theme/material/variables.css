@@ -8,4 +8,6 @@
 	--mdc-theme-on-surface: #000; /* Text color on top of a surface background */
 
 	--zindex-dialog: 400;
+	--mdc-border-color: rgba(0, 0, 0, 0.38);
+	--mdc-border-radius: 4px;
 }
