@@ -2,7 +2,7 @@ const { registerSuite } = intern.getInterface('object');
 const { assert } = intern.getPlugin('chai');
 
 import * as sinon from 'sinon';
-import { v, w, tsx } from '@dojo/framework/core/vdom';
+import { tsx } from '@dojo/framework/core/vdom';
 import Focus from '../../../meta/Focus';
 import assertionTemplate from '@dojo/framework/testing/assertionTemplate';
 
@@ -49,85 +49,79 @@ const expected = function(
 
 	const helperTextValue = (valid === false && message) || helperText;
 
-	return v(
-		'div',
-		{
-			key: 'root',
-			classes: [
-				css.root,
-				disabled ? css.disabled : null,
-				focused ? css.focused : null,
-				valid === false ? css.invalid : null,
-				valid === true ? css.valid : null,
-				readOnly ? css.readonly : null,
-				required ? css.required : null
-			]
-		},
-		[
-			label
-				? w(
-						Label,
-						{
-							theme: undefined,
-							classes: undefined,
-							disabled,
-							focused,
-							hidden: undefined,
-							valid,
-							readOnly,
-							required,
-							forId: ''
-						},
-						['foo']
-				  )
-				: null,
-			v('div', { classes: css.inputWrapper }, [
-				v('textarea', {
-					classes: css.input,
-					id: '',
-					key: 'input',
-					cols: '20',
-					disabled,
-					focus: noop,
-					'aria-invalid': valid === false ? 'true' : null,
-					maxlength: null,
-					minlength: null,
-					name: undefined,
-					placeholder: undefined,
-					readOnly,
-					'aria-readonly': readOnly ? 'true' : null,
-					required,
-					rows: '2',
-					value: undefined,
-					wrap: undefined,
-					onblur: noop,
-					onfocus: noop,
-					oninput: noop,
-					onkeydown: noop,
-					onkeyup: noop,
-					onclick: noop,
-					onpointerenter: noop,
-					onpointerleave: noop,
-					...inputOverrides
-				})
-			]),
-			w(HelperText, { text: helperTextValue, valid, classes: undefined, theme: undefined })
-		]
+	return (
+		<div key="root" classes={css.root}>
+			<div
+				key="wrapper"
+				classes={[
+					css.wrapper,
+					disabled ? css.disabled : null,
+					focused ? css.focused : null,
+					valid === false ? css.invalid : null,
+					valid === true ? css.valid : null,
+					readOnly ? css.readonly : null,
+					required ? css.required : null
+				]}
+			>
+				{label ? (
+					<Label
+						theme={undefined}
+						classes={{
+							'@dojo/widgets/label': {
+								root: [css.label]
+							}
+						}}
+						disabled={disabled}
+						focused={focused}
+						hidden={undefined}
+						valid={valid}
+						readOnly={readOnly}
+						required={required}
+						forId=""
+					>
+						foo
+					</Label>
+				) : null}
+				<div classes={css.inputWrapper}>
+					<textarea
+						classes={css.input}
+						id=""
+						key="input"
+						cols="20"
+						disabled={disabled}
+						focus={noop}
+						aria-invalid={valid === false ? 'true' : null}
+						maxlength={null}
+						minlength={null}
+						name={undefined}
+						placeholder={undefined}
+						readOnly={readOnly}
+						aria-readonly={readOnly ? 'true' : null}
+						required={required}
+						rows="2"
+						value={undefined}
+						wrap={undefined}
+						onblur={noop}
+						onfocus={noop}
+						oninput={noop}
+						onkeydown={noop}
+						onkeyup={noop}
+						onclick={noop}
+						onpointerenter={noop}
+						onpointerleave={noop}
+						{...inputOverrides}
+					/>
+				</div>
+			</div>
+			<HelperText
+				text={helperTextValue}
+				valid={valid}
+				classes={undefined}
+				theme={undefined}
+			/>
+		</div>
 	);
 };
-
-const baseAssertion = assertionTemplate(() => (
-	<div key="root" classes={[css.root, null, null, null, null, null, null]}>
-		{textarea()}
-		<HelperText
-			assertion-key="helperText"
-			text={undefined}
-			valid={true}
-			classes={undefined}
-			theme={undefined}
-		/>
-	</div>
-));
 
 const textarea = () => (
 	<div classes={css.inputWrapper}>
@@ -161,28 +155,43 @@ const textarea = () => (
 	</div>
 );
 
+const baseAssertion = assertionTemplate(() => (
+	<div key="root" classes={css.root}>
+		<div key="wrapper" classes={[css.wrapper, null, null, null, null, null, null]}>
+			{textarea()}
+		</div>
+		<HelperText
+			assertion-key="helperText"
+			text={undefined}
+			valid={true}
+			classes={undefined}
+			theme={undefined}
+		/>
+	</div>
+));
+
 registerSuite('Textarea', {
 	tests: {
 		'default properties'() {
-			const h = harness(() => w(TextArea, {}));
+			const h = harness(() => <TextArea />);
 			h.expect(expected);
 		},
 
 		'custom properties'() {
-			const h = harness(() =>
-				w(TextArea, {
-					aria: { describedBy: 'foo' },
-					columns: 15,
-					widgetId: 'foo',
-					maxLength: 50,
-					minLength: 10,
-					name: 'bar',
-					placeholder: 'baz',
-					rows: 42,
-					value: 'qux',
-					wrapText: 'soft'
-				})
-			);
+			const h = harness(() => (
+				<TextArea
+					aria={{ describedBy: 'foo' }}
+					columns={15}
+					widgetId="foo"
+					maxLength={50}
+					minLength={10}
+					name="bar"
+					placeholder="baz"
+					rows={42}
+					value="qux"
+					wrapText="soft"
+				/>
+			));
 
 			h.expect(() =>
 				expected(false, {
@@ -201,11 +210,7 @@ registerSuite('Textarea', {
 		},
 
 		label() {
-			const h = harness(() =>
-				w(TextArea, {
-					label: 'foo'
-				})
-			);
+			const h = harness(() => <TextArea label="foo" />);
 
 			h.expect(() => expected(true));
 		},
@@ -218,12 +223,12 @@ registerSuite('Textarea', {
 				required: true
 			};
 
-			const h = harness(() => w(TextArea, properties));
+			const h = harness(() => <TextArea {...properties} />);
 
 			h.expect(
 				baseAssertion
-					.setProperty(':root', 'classes', [
-						css.root,
+					.setProperty('@wrapper', 'classes', [
+						css.wrapper,
 						css.disabled,
 						null,
 						css.invalid,
@@ -247,7 +252,15 @@ registerSuite('Textarea', {
 			};
 			h.expect(
 				baseAssertion
-					.setProperty(':root', 'classes', [css.root, null, null, null, null, null, null])
+					.setProperty('@wrapper', 'classes', [
+						css.wrapper,
+						null,
+						null,
+						null,
+						null,
+						null,
+						null
+					])
 					.setProperty('@input', 'aria-invalid', null)
 					.setProperty('@input', 'aria-readonly', null)
 					.setProperty('@input', 'disabled', false)
@@ -266,12 +279,13 @@ registerSuite('Textarea', {
 			mockMeta.withArgs(Focus).returns({
 				get: mockFocusGet
 			});
-			const h = harness(() => w(MockMetaMixin(TextArea, mockMeta), {}));
+			const MockMetaTextArea = MockMetaMixin(TextArea, mockMeta);
+			const h = harness(() => <MockMetaTextArea />);
 			h.expect(() => expected(false, {}, {}, true));
 		},
 
 		helperText() {
-			const h = harness(() => w(TextArea, { helperText: 'test' }));
+			const h = harness(() => <TextArea helperText="test" />);
 			h.expect(() => expected(false, {}, {}, false, 'test'));
 		},
 
@@ -280,13 +294,9 @@ registerSuite('Textarea', {
 			const onValue = sinon.stub();
 			const onFocus = sinon.stub();
 
-			const h = harness(() =>
-				w(TextArea, {
-					onBlur,
-					onValue,
-					onFocus
-				})
-			);
+			const h = harness(() => (
+				<TextArea onBlur={onBlur} onValue={onValue} onFocus={onFocus} />
+			));
 
 			h.trigger('@input', 'onblur', stubEvent);
 			assert.isTrue(onBlur.called, 'onBlur called');
@@ -307,12 +317,8 @@ registerSuite('Textarea', {
 				get: () => ({ active: false, containsFocus: false })
 			});
 
-			harness(() =>
-				w(MockMetaMixin(TextArea, mockMeta), {
-					value: 'test value',
-					onValidate: validateSpy
-				})
-			);
+			const MockMetaTextArea = MockMetaMixin(TextArea, mockMeta);
+			harness(() => <MockMetaTextArea value="test value" onValidate={validateSpy} />);
 
 			assert.isTrue(validateSpy.calledWith(false, 'test'));
 
@@ -320,12 +326,7 @@ registerSuite('Textarea', {
 				get: sinon.stub().returns({ valid: true, message: '' })
 			});
 
-			harness(() =>
-				w(MockMetaMixin(TextArea, mockMeta), {
-					value: 'test value',
-					onValidate: validateSpy
-				})
-			);
+			harness(() => <MockMetaTextArea value="test value" onValidate={validateSpy} />);
 
 			assert.isTrue(validateSpy.calledWith(true, ''));
 		},
@@ -342,13 +343,14 @@ registerSuite('Textarea', {
 				get: () => ({ active: false, containsFocus: false })
 			});
 
-			harness(() =>
-				w(MockMetaMixin(TextArea, mockMeta), {
-					value: 'test value',
-					valid: { valid: false, message: 'test' },
-					onValidate: validateSpy
-				})
-			);
+			const MockMetaTextArea = MockMetaMixin(TextArea, mockMeta);
+			harness(() => (
+				<MockMetaTextArea
+					value="test value"
+					valid={{ valid: false, message: 'test' }}
+					onValidate={validateSpy}
+				/>
+			));
 
 			assert.isFalse(validateSpy.called);
 		},
@@ -366,13 +368,14 @@ registerSuite('Textarea', {
 				get: () => ({ active: false, containsFocus: false })
 			});
 
-			harness(() =>
-				w(MockMetaMixin(TextArea, mockMeta), {
-					value: 'test value',
-					onValidate: validateSpy,
-					customValidator: customValidatorSpy
-				})
-			);
+			const MockMetaTextArea = MockMetaMixin(TextArea, mockMeta);
+			harness(() => (
+				<MockMetaTextArea
+					value="test value"
+					onValidate={validateSpy}
+					customValidator={customValidatorSpy}
+				/>
+			));
 
 			assert.isFalse(customValidatorSpy.called);
 		},
@@ -390,13 +393,14 @@ registerSuite('Textarea', {
 				get: () => ({ active: false, containsFocus: false })
 			});
 
-			harness(() =>
-				w(MockMetaMixin(TextArea, mockMeta), {
-					value: 'test value',
-					onValidate: validateSpy,
-					customValidator: customValidatorSpy
-				})
-			);
+			const MockMetaTextArea = MockMetaMixin(TextArea, mockMeta);
+			harness(() => (
+				<MockMetaTextArea
+					value="test value"
+					onValidate={validateSpy}
+					customValidator={customValidatorSpy}
+				/>
+			));
 
 			assert.isTrue(customValidatorSpy.called);
 		},
@@ -416,13 +420,14 @@ registerSuite('Textarea', {
 				get: () => ({ active: false, containsFocus: false })
 			});
 
-			harness(() =>
-				w(MockMetaMixin(TextArea, mockMeta), {
-					value: 'test value',
-					onValidate: validateSpy,
-					customValidator: customValidatorSpy
-				})
-			);
+			const MockMetaTextArea = MockMetaMixin(TextArea, mockMeta);
+			harness(() => (
+				<MockMetaTextArea
+					value="test value"
+					onValidate={validateSpy}
+					customValidator={customValidatorSpy}
+				/>
+			));
 
 			assert.isTrue(validateSpy.calledWith(false, 'custom message'));
 		}

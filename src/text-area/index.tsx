@@ -143,21 +143,6 @@ export class TextArea extends ThemedMixin(FocusMixin(WidgetBase))<TextAreaProper
 
 	private _uuid = uuid();
 
-	protected getRootClasses(): (string | null)[] {
-		const { disabled, readOnly, required } = this.properties;
-		const focus = this.meta(Focus).get('root');
-		const { valid } = this.validity;
-		return [
-			css.root,
-			disabled ? css.disabled : null,
-			focus.containsFocus ? css.focused : null,
-			valid === false ? css.invalid : null,
-			valid === true ? css.valid : null,
-			readOnly ? css.readonly : null,
-			required ? css.required : null
-		];
-	}
-
 	render(): DNode {
 		const {
 			aria = {},
@@ -193,9 +178,9 @@ export class TextArea extends ThemedMixin(FocusMixin(WidgetBase))<TextAreaProper
 		const computedHelperText = (valid === false && message) || helperText;
 
 		return (
-			<div key="root" classes={this.theme(this.getRootClasses())}>
+			<div key="root" classes={this.theme(css.root)}>
 				<div
-					key="wraper"
+					key="wrapper"
 					classes={this.theme([
 						css.wrapper,
 						disabled ? css.disabled : null,
