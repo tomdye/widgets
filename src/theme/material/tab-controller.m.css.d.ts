@@ -1,6 +1,7 @@
 export const tabButtons: string;
 export const tabButton: string;
 export const tabButtonContent: string;
+export const root: string;
 export const activeTabButton: string;
 export const disabledTabButton: string;
 export const close: string;
