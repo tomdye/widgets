@@ -377,9 +377,7 @@ export const List = factory(function List({
 					'item'
 				)}
 			>
-				<div styles={{ height: '26px', paddingTop: '13px' }}>
-					<LoadingIndicator />
-				</div>
+				<LoadingIndicator />
 			</MenuItem>
 		) : (
 			<ListItem
@@ -391,9 +389,8 @@ export const List = factory(function List({
 					'item'
 				)}
 			>
-				<div styles={{ height: '26px', paddingTop: '13px' }}>
-					<LoadingIndicator />
-				</div>
+				{' '}
+				<LoadingIndicator />
 			</ListItem>
 		);
 	}
