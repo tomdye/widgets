@@ -389,7 +389,6 @@ export const List = factory(function List({
 					'item'
 				)}
 			>
-				{' '}
 				<LoadingIndicator />
 			</ListItem>
 		);
