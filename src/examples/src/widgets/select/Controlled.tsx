@@ -1,8 +1,9 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
-import Select, { defaultTransform } from '@dojo/widgets/select';
+import Select from '@dojo/widgets/select';
 import icache from '@dojo/framework/core/middleware/icache';
 import Example from '../../Example';
-import { createResource } from '@dojo/framework/core/resource';
+import { createMemoryResourceTemplate } from '@dojo/widgets/resources';
+import { ListOption } from '@dojo/widgets/list';
 
 const factory = create({ icache });
 const options = [
@@ -11,14 +12,13 @@ const options = [
 	{ value: 'fish', label: 'Fish' }
 ];
 
-const resource = createResource();
+const template = createMemoryResourceTemplate<ListOption>();
 
 export default factory(function Controlled({ middleware: { icache } }) {
 	return (
 		<Example>
 			<Select
-				resource={resource(options)}
-				transform={defaultTransform}
+				resource={template({ data: options })}
 				onValue={(value) => {
 					icache.set('value', value);
 				}}

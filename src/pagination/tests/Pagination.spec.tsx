@@ -13,7 +13,7 @@ import assertionTemplate from '@dojo/framework/testing/harness/assertionTemplate
 import { stubEvent } from '../../common/tests/support/test-helpers';
 
 import Icon from '../../icon';
-import Select, { defaultTransform } from '../../select';
+import Select from '../../select';
 
 import Pagination from '..';
 import * as css from '../../theme/default/pagination.m.css';
@@ -269,15 +269,17 @@ describe('Pagination', () => {
 					key="page-size-select"
 					initialValue="20"
 					resource={{
-						resource: noop as any,
-						data: [{ value: '10' }, { value: '20' }]
+						template: {
+							read: noop,
+							find: noop
+						},
+						data: [{ value: '10' }, { value: '20' }],
+						transform: undefined,
+						type: 'TEMPLATE' as const
 					}}
-					transform={defaultTransform}
 					onValue={noop}
 					value={undefined}
-				>
-					{noop as any}
-				</Select>
+				/>
 			</div>
 		]);
 		const pageSizes = [10, 20];

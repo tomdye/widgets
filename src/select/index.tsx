@@ -2,7 +2,7 @@ import { RenderResult } from '@dojo/framework/core/interfaces';
 import { focus } from '@dojo/framework/core/middleware/focus';
 import { i18n } from '@dojo/framework/core/middleware/i18n';
 import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
-import { createDataMiddleware } from '@dojo/framework/core/middleware/data';
+import { createResourceMiddleware, ResourceMeta } from '@dojo/framework/core/middleware/resources';
 import { uuid } from '@dojo/framework/core/util';
 import { create, tsx } from '@dojo/framework/core/vdom';
 import { Keys } from '../common/util';
@@ -25,7 +25,6 @@ import * as labelCss from '../theme/default/label.m.css';
 import * as iconCss from '../theme/default/icon.m.css';
 import * as css from '../theme/default/select.m.css';
 import bundle from './select.nls';
-import { find } from '@dojo/framework/shim/array';
 import LoadingIndicator from '../loading-indicator';
 
 export interface SelectProperties {
@@ -74,18 +73,25 @@ interface SelectICache {
 	triggerId: string;
 	valid: boolean;
 	value: string;
+	meta?: ResourceMeta<any>;
 }
 
 const icache = createICacheMiddleware<SelectICache>();
 
-const factory = create({ icache, focus, theme, i18n, data: createDataMiddleware<ListOption>() })
+const factory = create({
+	icache,
+	focus,
+	theme,
+	i18n,
+	resource: createResourceMiddleware<ListOption>()
+})
 	.properties<SelectProperties>()
 	.children<SelectChildren | undefined>();
 
 export const Select = factory(function Select({
 	children,
 	properties,
-	middleware: { icache, focus, theme, i18n, data }
+	middleware: { icache, focus, theme, i18n, resource }
 }) {
 	const {
 		classes,
@@ -98,9 +104,7 @@ export const Select = factory(function Select({
 		placeholder = '',
 		position,
 		required,
-		name,
-		resource,
-		transform
+		name
 	} = properties();
 	const [{ items, label } = { items: undefined, label: undefined }] = children();
 
@@ -122,8 +126,12 @@ export const Select = factory(function Select({
 	let valid = icache.get('valid');
 	const dirty = icache.get('dirty');
 	const { messages } = i18n.localize(bundle);
-	const { get, getOptions, isLoading, getTotal } = data();
+	const { options, isLoading, meta, getResource, find } = resource();
 	const expanded = icache.get('expanded');
+	const metaInfo = icache.set('meta', (current) => {
+		const newMeta = meta(options());
+		return newMeta || current;
+	});
 
 	if (required && dirty) {
 		const isValid = value !== undefined;
@@ -189,9 +197,17 @@ export const Select = factory(function Select({
 						}
 
 						let valueOption: ListOption | undefined;
-						const currentOptions = get({ query: getOptions().query });
-						if (currentOptions && currentOptions.length) {
-							valueOption = find(currentOptions, (option) => option.value === value);
+						if (value) {
+							valueOption = (
+								find({
+									options: options(),
+									start: 0,
+									query: { value },
+									type: 'exact'
+								}) || {
+									item: undefined
+								}
+							).item;
 						}
 
 						return (
@@ -246,15 +262,14 @@ export const Select = factory(function Select({
 							close();
 						}
 
-						return getTotal(getOptions()) === undefined && isLoading(getOptions()) ? (
+						return metaInfo === undefined && isLoading(options()) ? (
 							<LoadingIndicator key="loading" />
 						) : (
 							<div key="menu-wrapper" classes={themedCss.menuWrapper}>
 								<List
 									key="menu"
 									focus={() => focusNode === 'menu' && shouldFocus}
-									resource={resource}
-									transform={transform}
+									resource={getResource()}
 									onValue={(value: string) => {
 										focus.focus();
 										closeMenu();

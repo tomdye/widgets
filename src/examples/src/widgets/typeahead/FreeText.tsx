@@ -1,9 +1,9 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
-import { defaultTransform } from '@dojo/widgets/select';
 import icache from '@dojo/framework/core/middleware/icache';
 import Typeahead from '@dojo/widgets/typeahead';
 import Example from '../../Example';
-import { createResource, createMemoryTemplate, defaultFilter } from '@dojo/framework/core/resource';
+import { createMemoryResourceTemplate } from '@dojo/widgets/resources';
+import { ListOption } from '@dojo/widgets/list';
 
 const factory = create({ icache });
 const options = [
@@ -12,15 +12,14 @@ const options = [
 	{ value: 'fish', label: 'Fish' }
 ];
 
-const resource = createResource(createMemoryTemplate({ filter: defaultFilter }));
+const template = createMemoryResourceTemplate<ListOption>();
 
 export default factory(function FreeText({ middleware: { icache } }) {
 	return (
 		<Example>
 			<Typeahead
 				strict={false}
-				resource={resource(options)}
-				transform={defaultTransform}
+				resource={template({ data: options })}
 				onValue={(value) => {
 					icache.set('value', value);
 				}}

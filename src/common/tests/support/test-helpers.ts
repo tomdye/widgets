@@ -17,6 +17,7 @@ export const stubEvent = {
 	target: {}
 };
 
+export const isResourceComparator = (value: any) => Boolean(value && value.type === 'WRAPPER');
 export const isObjectComparator = (value: any) => typeof value === 'object';
 export const isStringComparator = (value: any) => value === null || typeof value === 'string';
 export const isStringObjectComparator = (value: any) =>
@@ -114,4 +115,10 @@ export const compareTheme = {
 	selector: '*',
 	property: 'theme',
 	comparator: isObjectComparator
+};
+
+export const compareResource = {
+	selector: '*',
+	property: 'resource',
+	comparator: isResourceComparator
 };
