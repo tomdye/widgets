@@ -1,4 +1,6 @@
-const locales = {};
+const locales = {
+	zh: () => import('./zh/Calendar')
+};
 
 const messages = {
 	chooseMonth: 'Choose Month',

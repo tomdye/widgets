@@ -1,4 +1,6 @@
-const locales = {};
+const locales = {
+	zh: () => import('./zh/common')
+};
 
 const messages = {
 	sunShort: 'Sun',
