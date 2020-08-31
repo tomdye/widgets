@@ -724,7 +724,8 @@ export const config = {
 			filename: 'index',
 			overview: {
 				example: {
-					filename: 'Basic FileUploadInput',
+					title: 'Basic FileUploadInput',
+					filename: 'Basic',
 					module: BasicFileUploadInput
 				}
 			},
