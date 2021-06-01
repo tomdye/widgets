@@ -15,7 +15,45 @@ import LoadingIndicator from '../loading-indicator';
 import { throttle } from '@dojo/framework/core/util';
 import Icon from '../icon';
 
-export interface MenuItemProperties {
+export interface OneLineItemChildren {
+	/** Icon or avatar to place before the primary content */
+	leading?: RenderResult;
+	/** The main content of the item, typically text */
+	primary?: RenderResult;
+	/** Icon or text to place after the primary content */
+	trailing?: RenderResult;
+}
+
+export interface OneLineItemProperties {
+	draggable?: boolean;
+}
+
+const OneLineItemFactory = create({ theme })
+	.children<OneLineItemChildren>()
+	.properties<OneLineItemProperties>();
+
+export const OneLineItem = OneLineItemFactory(function OneLineItem({ children, properties }) {
+	const { draggable, theme: themeProp, variant } = properties();
+	const [{ leading, primary, trailing }] = children();
+
+	return (
+		<div classes={}>
+			{leading ? <span classes={themedCss.leading}>{leading}</span> : undefined}
+			<span classes={themedCss.primary}>{primary}</span>
+			{trailing ? <span classes={themedCss.trailing}>{trailing}</span> : undefined}
+			{draggable && !trailing && (
+				<Icon
+					type="barsIcon"
+					classes={{ '@dojo/widgets/icon': { icon: [themedCss.dragIcon] } }}
+					theme={themeProp}
+					variant={variant}
+				/>
+			)}
+		</div>
+	);
+});
+
+interface MenuItemProperties {
 	/** Callback used when the item is clicked */
 	onSelect(): void;
 	/** Property to set the active state of the item, indicates it's the current keyboard / mouse navigation target */
@@ -30,7 +68,7 @@ export interface MenuItemProperties {
 
 const menuItemFactory = create({ theme }).properties<MenuItemProperties>();
 
-export const MenuItem = menuItemFactory(function MenuItem({
+const MenuItem = menuItemFactory(function MenuItem({
 	properties,
 	children,
 	middleware: { theme }
@@ -72,7 +110,7 @@ export const MenuItem = menuItemFactory(function MenuItem({
 	);
 });
 
-export interface ListItemProperties {
+interface ListItemProperties {
 	/** Callback used when the item is clicked */
 	onSelect(): void;
 	/** Property to set the selected state of the item */
@@ -105,20 +143,9 @@ export interface ListItemProperties {
 	collapsed?: boolean;
 }
 
-export interface ListItemChildren {
-	/** Icon or avatar to place before the primary content */
-	leading?: RenderResult;
-	/** The main content of the item, typically text */
-	primary?: RenderResult;
-	/** Icon or text to place after the primary content */
-	trailing?: RenderResult;
-}
+const listItemFactory = create({ theme }).properties<ListItemProperties>();
 
-const listItemFactory = create({ theme })
-	.properties<ListItemProperties>()
-	.children<ListItemChildren | RenderResult | RenderResult[]>();
-
-export const ListItem = listItemFactory(function ListItem({
+const ListItem = listItemFactory(function ListItem({
 	properties,
 	children,
 	middleware: { theme }
@@ -138,9 +165,9 @@ export const ListItem = listItemFactory(function ListItem({
 		onDrop,
 		movedUp,
 		movedDown,
-		collapsed,
-		theme: themeProp,
-		variant
+		collapsed
+		// theme: themeProp,
+		// variant
 	} = properties();
 
 	const themedCss = theme.classes(listItemCss);
@@ -153,10 +180,10 @@ export const ListItem = listItemFactory(function ListItem({
 		!disabled && !active && onRequestActive();
 	}
 
-	const [firstChild, ...otherChildren] = children();
-	const { leading = undefined, primary, trailing = undefined } = isRenderResult(firstChild)
-		? { primary: [firstChild, ...otherChildren] }
-		: firstChild;
+	// const [firstChild, ...otherChildren] = children();
+	// const { leading = undefined, primary, trailing = undefined } = isRenderResult(firstChild)
+	// 	? { primary: [firstChild, ...otherChildren] }
+	// 	: firstChild;
 
 	return (
 		<div
@@ -193,17 +220,7 @@ export const ListItem = listItemFactory(function ListItem({
 			ondrop={onDrop}
 			styles={{ visibility: dragged ? 'hidden' : undefined }}
 		>
-			{leading ? <span classes={themedCss.leading}>{leading}</span> : undefined}
-			<span classes={themedCss.primary}>{primary}</span>
-			{trailing ? <span classes={themedCss.trailing}>{trailing}</span> : undefined}
-			{draggable && !trailing && (
-				<Icon
-					type="barsIcon"
-					classes={{ '@dojo/widgets/icon': { icon: [themedCss.dragIcon] } }}
-					theme={themeProp}
-					variant={variant}
-				/>
-			)}
+			{children()}
 		</div>
 	);
 });
@@ -247,10 +264,7 @@ export interface ListProperties {
 
 export interface ListChildren {
 	/** Custom renderer for item contents */
-	(
-		item: ItemRendererProperties,
-		properties: ListItemProperties & MenuItemProperties & ThemeProperties
-	): RenderResult;
+	(item: ItemRendererProperties): RenderResult;
 }
 
 export interface ItemRendererProperties {
@@ -586,62 +600,57 @@ export const List = factory(function List({
 		};
 		let item: RenderResult;
 
-		if (itemRenderer) {
-			item = itemRenderer(
-				{
+		const children = itemRenderer
+			? itemRenderer({
 					value,
 					label,
 					disabled: itemDisabled,
 					active,
 					selected
-				},
-				{ ...itemProps, theme: themeProp }
-			);
-		} else {
-			const children = label || value;
-			item = menu ? (
-				<MenuItem
-					{...itemProps}
-					theme={theme.compose(
-						menuItemCss,
-						css,
-						'item'
-					)}
-				>
-					{children}
-				</MenuItem>
-			) : (
-				<ListItem
-					{...itemProps}
-					theme={theme.compose(
-						listItemCss,
-						css,
-						'item'
-					)}
-					selected={selected}
-					dragged={icache.get('dragIndex') === index}
-					draggable={draggable}
-					onDragStart={(event) => onDragStart(event, index)}
-					onDragEnd={onDragEnd}
-					onDragOver={(event) => onDragOver(event, index)}
-					onDrop={(event) => onDrop(event, index)}
-					movedUp={
-						icache.get('dragOverIndex') === index &&
-						icache.get('dragIndex')! < icache.get('dragOverIndex')!
-					}
-					movedDown={
-						icache.get('dragOverIndex') === index &&
-						icache.get('dragIndex')! > icache.get('dragOverIndex')!
-					}
-					collapsed={
-						icache.get('dragIndex') === index &&
-						icache.get('dragOverIndex') !== undefined
-					}
-				>
-					{children}
-				</ListItem>
-			);
-		}
+			  })
+			: label || value;
+
+		item = menu ? (
+			<MenuItem
+				{...itemProps}
+				theme={theme.compose(
+					menuItemCss,
+					css,
+					'item'
+				)}
+			>
+				{children}
+			</MenuItem>
+		) : (
+			<ListItem
+				{...itemProps}
+				theme={theme.compose(
+					listItemCss,
+					css,
+					'item'
+				)}
+				selected={selected}
+				dragged={icache.get('dragIndex') === index}
+				draggable={draggable}
+				onDragStart={(event) => onDragStart(event, index)}
+				onDragEnd={onDragEnd}
+				onDragOver={(event) => onDragOver(event, index)}
+				onDrop={(event) => onDrop(event, index)}
+				movedUp={
+					icache.get('dragOverIndex') === index &&
+					icache.get('dragIndex')! < icache.get('dragOverIndex')!
+				}
+				movedDown={
+					icache.get('dragOverIndex') === index &&
+					icache.get('dragIndex')! > icache.get('dragOverIndex')!
+				}
+				collapsed={
+					icache.get('dragIndex') === index && icache.get('dragOverIndex') !== undefined
+				}
+			>
+				{children}
+			</ListItem>
+		);
 
 		return divider ? [item, <hr classes={themedCss.divider} />] : item;
 	}
@@ -671,21 +680,20 @@ export const List = factory(function List({
 			theme: themeProp
 		};
 
-		const offscreenMenuItem = itemRenderer ? (
-			itemRenderer(
-				{
+		const offscreenChildren = itemRenderer
+			? itemRenderer({
 					selected: false,
 					active: false,
 					value: 'offscreen',
 					label: 'offscreen',
 					disabled: false
-				},
-				offscreenItemProps
-			)
-		) : menu ? (
-			<MenuItem {...offscreenItemProps}>offscreen</MenuItem>
+			  })
+			: 'offscreen';
+
+		const offscreenItem = menu ? (
+			<MenuItem {...offscreenItemProps}>{offscreenChildren}</MenuItem>
 		) : (
-			<ListItem {...offscreenItemProps}>offscreen</ListItem>
+			<ListItem {...offscreenItemProps}>{offscreenChildren}</ListItem>
 		);
 
 		const itemHeight = icache.getOrSet(
@@ -693,7 +701,7 @@ export const List = factory(function List({
 			offscreen(
 				() => (
 					<div styles={{ padding: '0' }} classes={[themedCss.root, fixedCss.root]}>
-						{offscreenMenuItem}
+						{offscreenItem}
 					</div>
 				),
 				(node) => node.getBoundingClientRect().height

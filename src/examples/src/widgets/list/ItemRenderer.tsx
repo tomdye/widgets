@@ -1,5 +1,5 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
-import List, { ListItem } from '@dojo/widgets/list';
+import List from '@dojo/widgets/list';
 import states from './states';
 import icache from '@dojo/framework/core/middleware/icache';
 import Example from '../../Example';
@@ -25,16 +25,14 @@ export default factory(function ItemRenderer({ id, middleware: { icache, resourc
 				}}
 				itemsInView={8}
 			>
-				{({ value }, props) => {
+				{({ value }) => {
 					const color = value.length > 7 ? 'red' : 'blue';
 					return (
-						<ListItem {...props}>
-							<div>
-								<div styles={{ color }}>{value}</div>
-								<div styles={{ color }}>{value}</div>
-								<div styles={{ color }}>{value}</div>
-							</div>
-						</ListItem>
+						<div>
+							<div styles={{ color }}>{value}</div>
+							<div styles={{ color }}>{value}</div>
+							<div styles={{ color }}>{value}</div>
+						</div>
 					);
 				}}
 			</List>

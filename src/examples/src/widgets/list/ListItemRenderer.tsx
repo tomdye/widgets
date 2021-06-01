@@ -1,5 +1,5 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
-import List, { ListItem } from '@dojo/widgets/list';
+import List from '@dojo/widgets/list';
 import Icon from '@dojo/widgets/icon';
 import states from './states';
 import icache from '@dojo/framework/core/middleware/icache';
@@ -26,14 +26,14 @@ export default factory(function ListItemRenderer({ id, middleware: { icache, res
 				}}
 				itemsInView={8}
 			>
-				{({ value, label }, props) => (
-					<ListItem {...props}>
+				{({ value, label }) => (
+					<div>
 						{{
 							leading: <Icon type="locationIcon" />,
 							primary: label,
 							trailing: value
 						}}
-					</ListItem>
+					</div>
 				)}
 			</List>
 			<p>{`Clicked On: ${JSON.stringify(icache.getOrSet('value', ''))}`}</p>
