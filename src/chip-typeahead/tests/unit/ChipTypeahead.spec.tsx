@@ -8,7 +8,7 @@ import {
 } from '../../../common/tests/support/test-helpers';
 import Typeahead from '../../../typeahead';
 import { stub } from 'sinon';
-import { ListOption, ListItem } from '../../../list';
+import { ListOption } from '../../../list';
 import ChipTypeahead from '../..';
 import * as typeaheadCss from '../../../theme/default/typeahead.m.css';
 import * as chipCss from '../../../theme/default/chip.m.css';
@@ -371,16 +371,7 @@ registerSuite('ChipTypeahead', {
 			);
 
 			h.expect(
-				() => (
-					<ListItem
-						onSelect={stub()}
-						onRequestActive={stub()}
-						widgetId=""
-						selected={true}
-					>
-						<div classes={[themeCss.item, themeCss.selected]}>Cat</div>
-					</ListItem>
-				),
+				() => <div classes={[themeCss.item, themeCss.selected]}>Cat</div>,
 				() =>
 					itemRenderer(
 						{ value: '2', label: 'Cat' },
@@ -389,16 +380,7 @@ registerSuite('ChipTypeahead', {
 			);
 
 			h.expect(
-				() => (
-					<ListItem
-						onSelect={stub()}
-						onRequestActive={stub()}
-						widgetId=""
-						selected={false}
-					>
-						<div classes={[themeCss.item, null]}>Dog</div>
-					</ListItem>
-				),
+				() => <div classes={[themeCss.item, null]}>Dog</div>,
 				() =>
 					itemRenderer(
 						{ value: '1', label: 'Dog' },

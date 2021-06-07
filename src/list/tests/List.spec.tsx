@@ -6,7 +6,7 @@ import { tsx, getRegistry, create } from '@dojo/framework/core/vdom';
 import { renderer, assertion, wrap } from '@dojo/framework/testing/renderer';
 import { noop, createTestTheme } from '../../common/tests/support/test-helpers';
 import { Keys } from '../../common/util';
-import List, { ListItem, MenuItem } from '../index';
+import List, { _ListItem as ListItem, _MenuItem as MenuItem } from '../index';
 import LoadingIndicator from '../../loading-indicator';
 import * as css from '../../theme/default/list.m.css';
 import * as fixedCss from '../list.m.css';
@@ -16,6 +16,7 @@ import Registry from '@dojo/framework/core/Registry';
 import RegistryHandler from '@dojo/framework/core/RegistryHandler';
 import { createResourceTemplate } from '@dojo/framework/core/middleware/resources';
 import dimensions from '@dojo/framework/core/middleware/dimensions';
+import OneLineItem from '../OneLineItem';
 
 const mockGetRegistry = create()(function() {
 	const registry = new Registry();
@@ -1946,12 +1947,8 @@ describe('List', () => {
 		const r = renderer(
 			() => (
 				<List resource={{ data, id: 'test', idKey: 'value' }} onValue={onValueStub}>
-					{(item, itemProps) => {
-						return (
-							<ListItem classes={undefined} variant={undefined} {...itemProps}>
-								{item.label || item.value}
-							</ListItem>
-						);
+					{(item) => {
+						return <OneLineItem>{{ primary: item.label || item.value }}</OneLineItem>;
 					}}
 				</List>
 			),

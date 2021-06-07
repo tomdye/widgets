@@ -153,9 +153,6 @@ const ListItem = listItemFactory(function ListItem({
 				theme.variant(),
 				themedCss.root,
 				themedCss.height,
-				selected && themedCss.selected,
-				active && themedCss.active,
-				disabled && themedCss.disabled,
 				movedUp && themedCss.movedUp,
 				movedDown && themedCss.movedDown,
 				collapsed && themedCss.collapsed,
@@ -823,3 +820,5 @@ export const List = factory(function List({
 });
 
 export default List;
+export const _ListItem = ListItem;
+export const _MenuItem = MenuItem;

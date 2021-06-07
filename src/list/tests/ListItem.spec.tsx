@@ -1,7 +1,7 @@
 import { sandbox, assert as assertSinon } from 'sinon';
 import { tsx } from '@dojo/framework/core/vdom';
 import * as css from '../../theme/default/list-item.m.css';
-import { ListItem } from '../../list';
+import { _ListItem as ListItem } from '../../list';
 import renderer, { assertion, wrap } from '@dojo/framework/testing/renderer';
 import Icon from '../../icon';
 const { describe, it, after } = intern.getInterface('bdd');
@@ -104,7 +104,6 @@ describe('ListBoxItem', () => {
 				undefined,
 				css.root,
 				css.height,
-				css.selected,
 				false,
 				false,
 				undefined,
