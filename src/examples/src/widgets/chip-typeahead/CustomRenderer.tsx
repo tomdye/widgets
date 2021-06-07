@@ -1,11 +1,12 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
 import ChipTypeahead from '@dojo/widgets/chip-typeahead';
-import { ListItem, ListOption } from '@dojo/widgets/list';
+import { ListOption } from '@dojo/widgets/list';
 import Example from '../../Example';
 import {
 	createResourceTemplate,
 	createResourceMiddleware
 } from '@dojo/framework/core/middleware/resources';
+import OneLineItem from '@dojo/widgets/list/OneLineItem';
 
 const resource = createResourceMiddleware();
 const factory = create({ resource });
@@ -23,10 +24,10 @@ export default factory(function CustomRenderer({ id, middleware: { resource } })
 			<ChipTypeahead resource={resource({ template: template({ id, data: options }) })}>
 				{{
 					label: 'Favorite Foods',
-					items: (item, props) => (
-						<ListItem {...props}>
-							{item.selected ? '❤️' : '🤢'} {item.label}
-						</ListItem>
+					items: (item) => (
+						<OneLineItem active={item.active}>
+							{{ primary: `${item.selected ? '❤️' : '🤢'} ${item.label}` }}
+						</OneLineItem>
 					),
 					selected: (value) => {
 						switch (value) {

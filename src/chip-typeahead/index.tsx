@@ -5,13 +5,7 @@ import theme from '../middleware/theme';
 import { createResourceMiddleware } from '@dojo/framework/core/middleware/resources';
 import Typeahead from '../typeahead';
 import * as css from '../theme/default/chip-typeahead.m.css';
-import {
-	ItemRendererProperties,
-	ListOption,
-	ListItem,
-	ListItemProperties,
-	MenuItemProperties
-} from '../list';
+import { ItemRendererProperties, ListOption } from '../list';
 import Chip from '../chip';
 import focus from '@dojo/framework/core/middleware/focus';
 import * as typeaheadCss from '../theme/default/typeahead.m.css';
@@ -20,6 +14,7 @@ import * as labelCss from '../theme/default/label.m.css';
 import { PopupPosition } from '@dojo/widgets/popup';
 import Label from '../label';
 import { find } from '@dojo/framework/shim/array';
+import OneLineItem from '../list/OneLineItem';
 
 export interface ChipTypeaheadProperties {
 	/** The initial selected value */
@@ -48,10 +43,7 @@ export interface ChipTypeaheadChildren {
 	/** Adds a <label> element with the supplied text */
 	label?: RenderResult;
 	/** Custom renderer for item contents */
-	items?: (
-		item: ItemRendererProperties,
-		props: ListItemProperties & MenuItemProperties
-	) => RenderResult;
+	items?: (item: ItemRendererProperties) => RenderResult;
 	/** Custom renderer for selected items */
 	selected?: (value: string, label: string) => RenderResult;
 }
@@ -271,31 +263,34 @@ export const ChipTypeahead = factory(function ChipTypeahead({
 				}}
 			>
 				{{
-					items: (item, props) => {
+					items: (item) => {
 						const selected =
 							icache
 								.getOrSet('options', [])
 								.findIndex((option) => option.value === item.value) !== -1;
 
 						if (items) {
-							return items(
-								{
-									...item,
-									selected
-								},
-								{
-									...props,
-									selected
-								}
-							);
+							return items({
+								...item,
+								selected
+							});
 						}
 
 						return (
-							<ListItem {...props} selected={selected}>
-								<div classes={[themeCss.item, selected ? themeCss.selected : null]}>
-									{item.label}
-								</div>
-							</ListItem>
+							<OneLineItem selected={selected}>
+								{{
+									primary: (
+										<div
+											classes={[
+												themeCss.item,
+												selected ? themeCss.selected : null
+											]}
+										>
+											{item.label}
+										</div>
+									)
+								}}
+							</OneLineItem>
 						);
 					},
 					leading: placement === 'inline' ? chips : undefined

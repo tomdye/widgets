@@ -2,13 +2,7 @@ import { create, tsx } from '@dojo/framework/core/vdom';
 import { PopupPosition } from '@dojo/widgets/popup';
 import { RenderResult } from '@dojo/framework/core/interfaces';
 import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
-import List, {
-	ItemRendererProperties,
-	ListOption,
-	ListItemProperties,
-	MenuItemProperties,
-	ListProperties
-} from '../list';
+import List, { ItemRendererProperties, ListOption, ListProperties } from '../list';
 import theme from '../middleware/theme';
 import focus from '@dojo/framework/core/middleware/focus';
 import * as css from '../theme/default/typeahead.m.css';
@@ -77,10 +71,7 @@ export interface TypeaheadChildren {
 	/** The label to show */
 	label?: RenderResult;
 	/** Custom renderer for item contents */
-	items?: (
-		item: ItemRendererProperties,
-		props: ListItemProperties & MenuItemProperties
-	) => RenderResult;
+	items?: (item: ItemRendererProperties) => RenderResult;
 	leading?: RenderResult;
 }
 
