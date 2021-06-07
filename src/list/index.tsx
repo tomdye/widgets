@@ -3,8 +3,8 @@ import { focus } from '@dojo/framework/core/middleware/focus';
 import dimensions from '@dojo/framework/core/middleware/dimensions';
 import { createICacheMiddleware } from '@dojo/framework/core/middleware/icache';
 import { create, tsx } from '@dojo/framework/core/vdom';
-import { Keys, isRenderResult } from '../common/util';
-import theme, { ThemeProperties } from '../middleware/theme';
+import { Keys } from '../common/util';
+import theme from '../middleware/theme';
 import offscreen from '../middleware/offscreen';
 import * as listItemCss from '../theme/default/list-item.m.css';
 import * as menuItemCss from '../theme/default/menu-item.m.css';
@@ -13,45 +13,7 @@ import * as fixedCss from './list.m.css';
 import { createResourceMiddleware } from '@dojo/framework/core/middleware/resources';
 import LoadingIndicator from '../loading-indicator';
 import { throttle } from '@dojo/framework/core/util';
-import Icon from '../icon';
-
-export interface OneLineItemChildren {
-	/** Icon or avatar to place before the primary content */
-	leading?: RenderResult;
-	/** The main content of the item, typically text */
-	primary?: RenderResult;
-	/** Icon or text to place after the primary content */
-	trailing?: RenderResult;
-}
-
-export interface OneLineItemProperties {
-	draggable?: boolean;
-}
-
-const OneLineItemFactory = create({ theme })
-	.children<OneLineItemChildren>()
-	.properties<OneLineItemProperties>();
-
-export const OneLineItem = OneLineItemFactory(function OneLineItem({ children, properties }) {
-	const { draggable, theme: themeProp, variant } = properties();
-	const [{ leading, primary, trailing }] = children();
-
-	return (
-		<div classes={}>
-			{leading ? <span classes={themedCss.leading}>{leading}</span> : undefined}
-			<span classes={themedCss.primary}>{primary}</span>
-			{trailing ? <span classes={themedCss.trailing}>{trailing}</span> : undefined}
-			{draggable && !trailing && (
-				<Icon
-					type="barsIcon"
-					classes={{ '@dojo/widgets/icon': { icon: [themedCss.dragIcon] } }}
-					theme={themeProp}
-					variant={variant}
-				/>
-			)}
-		</div>
-	);
-});
+import OneLineItem from './OneLineItem';
 
 interface MenuItemProperties {
 	/** Callback used when the item is clicked */
@@ -180,11 +142,6 @@ const ListItem = listItemFactory(function ListItem({
 		!disabled && !active && onRequestActive();
 	}
 
-	// const [firstChild, ...otherChildren] = children();
-	// const { leading = undefined, primary, trailing = undefined } = isRenderResult(firstChild)
-	// 	? { primary: [firstChild, ...otherChildren] }
-	// 	: firstChild;
-
 	return (
 		<div
 			id={widgetId}
@@ -273,6 +230,7 @@ export interface ItemRendererProperties {
 	label: string;
 	selected: boolean;
 	value: string;
+	draggable?: boolean;
 }
 
 interface ListICache {
@@ -600,15 +558,25 @@ export const List = factory(function List({
 		};
 		let item: RenderResult;
 
-		const children = itemRenderer
-			? itemRenderer({
-					value,
-					label,
-					disabled: itemDisabled,
-					active,
-					selected
-			  })
-			: label || value;
+		const children = itemRenderer ? (
+			itemRenderer({
+				value,
+				label,
+				disabled: itemDisabled,
+				active,
+				selected,
+				draggable
+			})
+		) : (
+			<OneLineItem
+				disabled={itemDisabled}
+				selected={selected}
+				active={active}
+				draggable={draggable}
+			>
+				{{ primary: label || value }}
+			</OneLineItem>
+		);
 
 		item = menu ? (
 			<MenuItem
@@ -680,15 +648,19 @@ export const List = factory(function List({
 			theme: themeProp
 		};
 
-		const offscreenChildren = itemRenderer
-			? itemRenderer({
-					selected: false,
-					active: false,
-					value: 'offscreen',
-					label: 'offscreen',
-					disabled: false
-			  })
-			: 'offscreen';
+		const offscreenChildren = itemRenderer ? (
+			itemRenderer({
+				selected: false,
+				active: false,
+				value: 'offscreen',
+				label: 'offscreen',
+				disabled: false
+			})
+		) : (
+			<OneLineItem selected={false} active={false} disabled={false}>
+				{{ primary: 'offscreen' }}
+			</OneLineItem>
+		);
 
 		const offscreenItem = menu ? (
 			<MenuItem {...offscreenItemProps}>{offscreenChildren}</MenuItem>

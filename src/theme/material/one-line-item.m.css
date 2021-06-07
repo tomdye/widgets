@@ -1,0 +1,56 @@
+.root {
+	composes: mdc-list-item from '@material/list/dist/mdc.list.css';
+	color: var(--mdc-text-color);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.root:hover {
+	background: var(--mdc-list-item-hover-background);
+	color: var(--mdc-list-item-hover-color);
+}
+
+.root.selected {
+	background: var(--mdc-list-item-selected-background);
+	color: var(--mdc-list-item-selected-color);
+}
+
+.root.disabled {
+	background: var(--mdc-list-item-disabled-background);
+	color: var(--mdc-list-item-disabled-color);
+}
+
+.active {
+	border: none;
+	background: var(--mdc-list-item-active-background);
+	color: var(--mdc-list-item-active-color);
+	min-height: 48px;
+	height: 100%;
+	box-shadow: none;
+}
+
+.root:before,
+.root:after {
+	display: none !important;
+}
+
+.dragIcon {
+	cursor: move;
+	opacity: 0.5;
+	position: absolute;
+	right: 16px;
+}
+
+.primary {
+	flex-grow: 1;
+	composes: mdc-list-item__text from '@material/list/dist/mdc.list.css';
+}
+
+.leading {
+	composes: mdc-list-item__graphic from '@material/list/dist/mdc.list.css';
+}
+
+.trailing {
+	composes: mdc-list-item__meta from '@material/list/dist/mdc.list.css';
+}

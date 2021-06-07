@@ -26,6 +26,7 @@ import * as stack from './stack.m.css';
 import * as icon from './icon.m.css';
 import * as label from './label.m.css';
 import * as listItem from './list-item.m.css';
+import * as oneLineItem from './one-line-item.m.css';
 import * as list from './list.m.css';
 import * as loadingIndicator from './loading-indicator.m.css';
 import * as menuItem from './menu-item.m.css';
@@ -91,6 +92,7 @@ export default {
 		'@dojo/widgets/menu-item': menuItem,
 		'@dojo/widgets/native-select': nativeSelect,
 		'@dojo/widgets/list-item': listItem,
+		'@dojo/widgets/one-line-item': oneLineItem,
 		'@dojo/widgets/pagination': pagination,
 		'@dojo/widgets/password-input': passwordInput,
 		'@dojo/widgets/popup': popup,

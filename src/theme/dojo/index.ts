@@ -26,6 +26,7 @@ import * as helperText from './helper-text.m.css';
 import * as icon from './icon.m.css';
 import * as label from './label.m.css';
 import * as listItem from './list-item.m.css';
+import * as oneLineItem from './one-line-item.m.css';
 import * as list from './list.m.css';
 import * as loadingIndicator from './loading-indicator.m.css';
 import * as menuItem from './menu-item.m.css';
@@ -37,7 +38,6 @@ import * as popupConfirmation from './popup-confirmation.m.css';
 import * as progress from './progress.m.css';
 import * as radioGroup from './radio-group.m.css';
 import * as radio from './radio.m.css';
-
 import * as rangeSlider from './range-slider.m.css';
 import * as result from './result.m.css';
 import * as rate from './rate.m.css';
@@ -91,6 +91,7 @@ export default {
 		'@dojo/widgets/icon': icon,
 		'@dojo/widgets/label': label,
 		'@dojo/widgets/list-item': listItem,
+		'@dojo/widgets/one-line-item': oneLineItem,
 		'@dojo/widgets/loading-indicator': loadingIndicator,
 		'@dojo/widgets/menu-item': menuItem,
 		'@dojo/widgets/chip-typeahead': chipTypeahead,

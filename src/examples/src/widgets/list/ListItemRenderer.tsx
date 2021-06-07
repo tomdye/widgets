@@ -8,6 +8,7 @@ import {
 	createResourceTemplate,
 	createResourceMiddleware
 } from '@dojo/framework/core/middleware/resources';
+import OneLineItem from '@dojo/widgets/list/OneLineItem';
 
 const resource = createResourceMiddleware();
 const factory = create({ icache, resource });
@@ -26,14 +27,14 @@ export default factory(function ListItemRenderer({ id, middleware: { icache, res
 				}}
 				itemsInView={8}
 			>
-				{({ value, label }) => (
-					<div>
+				{({ value, label, selected, active }) => (
+					<OneLineItem selected={selected} active={active}>
 						{{
 							leading: <Icon type="locationIcon" />,
 							primary: label,
 							trailing: value
 						}}
-					</div>
+					</OneLineItem>
 				)}
 			</List>
 			<p>{`Clicked On: ${JSON.stringify(icache.getOrSet('value', ''))}`}</p>

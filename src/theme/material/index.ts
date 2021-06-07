@@ -26,6 +26,7 @@ import * as helperText from './helper-text.m.css';
 import * as icon from './icon.m.css';
 import * as label from './label.m.css';
 import * as listItem from './list-item.m.css';
+import * as oneLineItem from './one-line-item.m.css';
 import * as list from './list.m.css';
 import * as loadingIndicator from './loading-indicator.m.css';
 import * as menuItem from './menu-item.m.css';
@@ -90,6 +91,7 @@ export default {
 		'@dojo/widgets/icon': icon,
 		'@dojo/widgets/label': label,
 		'@dojo/widgets/list-item': listItem,
+		'@dojo/widgets/one-line-item': oneLineItem,
 		'@dojo/widgets/loading-indicator': loadingIndicator,
 		'@dojo/widgets/list': list,
 		'@dojo/widgets/menu-item': menuItem,

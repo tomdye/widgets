@@ -1,8 +1,9 @@
 import { create, tsx } from '@dojo/framework/core/vdom';
-import List, { ListItem } from '@dojo/widgets/list';
+import List from '@dojo/widgets/list';
 import icache from '@dojo/framework/core/middleware/icache';
 import Example from '../../Example';
 import { listOptionTemplate } from '../../template';
+import OneLineItem from '@dojo/widgets/list/OneLineItem';
 
 const factory = create({ icache });
 
@@ -18,11 +19,11 @@ export default factory(function Basic({ middleware: { icache } }) {
 							icache.set('value', value);
 						}}
 					>
-						{({ label, selected }, props) => {
+						{({ label, selected }) => {
 							return (
-								<ListItem {...props} selected={selected}>
-									<h1>{label}</h1>
-								</ListItem>
+								<OneLineItem selected={selected}>
+									{{ primary: <h1>{label}</h1> }}
+								</OneLineItem>
 							);
 						}}
 					</List>

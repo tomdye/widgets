@@ -1,0 +1,39 @@
+/* Root class of each menu item */
+.root {
+}
+
+/* Added to selected items */
+.selected {
+	background: lightgrey;
+}
+
+/* Added to active items */
+.active {
+	border: 1px solid blue;
+}
+
+/* Added to disabled items */
+.disabled {
+	color: grey;
+	font-style: italic;
+}
+
+/* Applied to a draggable item */
+.draggable {
+}
+
+/* Added to a draggable item's handle icon */
+.dragIcon {
+}
+
+/* Wrapper for the main content of the item */
+.primary {
+}
+
+/* Wrapper for the leading content in front of the primary content */
+.leading {
+}
+
+/* Wrapper for the trailing content after the primary content*/
+.trailing {
+}
